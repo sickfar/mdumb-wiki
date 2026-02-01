@@ -1,0 +1,13 @@
+{
+  "contentPath": "./wiki",
+  "port": 3020,
+  "host": "localhost",
+  "watch": true,
+  "logLevel": "info",
+  "title": "MDumb Wiki",
+  "description": "A simple, file-based markdown wiki",
+  "syntaxTheme": "github-dark",
+  "maxConcurrentOps": 10,
+  "cacheTTL": 60000,
+  "enableCache": true
+}

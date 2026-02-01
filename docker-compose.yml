@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  wiki:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mdumb-wiki
+    ports:
+      - "3020:3020"
+    volumes:
+      # Mount wiki content directory
+      - ${WIKI_PATH:-./wiki}:/wiki:ro
+      # Mount config file (optional)
+      - ${CONFIG_PATH:-./config/config.json}:/app/config.json:ro
+    environment:
+      - NODE_ENV=production
+      - PORT=3020
+      - WIKI_PATH=/wiki
+      - WIKI_CONFIG_PATH=/app/config.json
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3020/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

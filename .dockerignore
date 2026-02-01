@@ -1,0 +1,13 @@
+node_modules
+.nuxt
+.output
+.git
+*.log
+test-wiki
+wiki
+.env
+.DS_Store
+tests
+.claude
+*.test.ts
+vitest.config.ts

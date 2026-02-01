@@ -1,0 +1,40 @@
+{
+  "name": "mdumb-wiki",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest --watch",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@nuxt/eslint": "1.13.0",
+    "@nuxt/image": "2.0.0",
+    "@nuxt/test-utils": "3.23.0",
+    "@nuxt/ui": "4.4.0",
+    "eslint": "^9.0.0",
+    "nuxt": "^4.3.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.6.3",
+    "vue": "^3.5.27",
+    "vue-router": "^4.6.4",
+    "markdown-it": "^14.1.0",
+    "@shikijs/markdown-it": "^1.26.1",
+    "shiki": "^1.26.1",
+    "gray-matter": "^4.0.3",
+    "chokidar": "^4.0.3",
+    "pino": "^9.6.0",
+    "pino-pretty": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "vitest": "^2.1.8",
+    "@vitest/ui": "^2.1.8"
+  }
+}
