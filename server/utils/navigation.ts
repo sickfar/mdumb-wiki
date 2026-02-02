@@ -85,10 +85,8 @@ export function buildNavigation(
     // Check if folder has an index.md
     const indexPath = path.join(folderFullPath, 'index.md')
     let title = folder.name
-    let hasIndex = false
 
     if (fs.existsSync(indexPath)) {
-      hasIndex = true
       // Extract title from index.md front matter
       try {
         const indexContent = fs.readFileSync(indexPath, 'utf-8')
@@ -96,7 +94,7 @@ export function buildNavigation(
         if (extractedTitle) {
           title = extractedTitle
         }
-      } catch (error) {
+      } catch {
         // If we can't read the index, use folder name
         console.error(`Error reading index.md for ${folderPath}:`, error)
       }

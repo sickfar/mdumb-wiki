@@ -43,10 +43,10 @@ const handleClearError = () => {
         Something went wrong on our end. Please try again later.
       </p>
       <div class="error-actions">
-        <button @click="handleReload" class="button button-primary">
+        <button class="button button-primary" @click="handleReload">
           Reload Page
         </button>
-        <button @click="handleClearError" class="button button-secondary">
+        <button class="button button-secondary" @click="handleClearError">
           Go Home
         </button>
       </div>
@@ -66,7 +66,7 @@ const handleClearError = () => {
         {{ error.message || 'Something went wrong. Please try again.' }}
       </p>
       <div class="error-actions">
-        <button @click="handleClearError" class="button button-primary">
+        <button class="button button-primary" @click="handleClearError">
           Go Home
         </button>
       </div>

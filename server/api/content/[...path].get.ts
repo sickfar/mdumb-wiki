@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
       if (existsSync(resolvedPath)) {
         filePath = resolvedPath
       }
-    } catch (error) {
+    } catch {
       // Path validation failed, try next variation
     }
 
@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
         if (existsSync(resolvedPath)) {
           filePath = resolvedPath
         }
-      } catch (error) {
+      } catch {
         // Path validation failed, try next variation
       }
     }

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { parseMarkdown, getMarkdownParser } from '../../server/utils/markdown'
-import type { WikiPage } from '../../types/wiki'
 
 describe('Markdown Parser', () => {
   beforeEach(async () => {

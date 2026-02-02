@@ -56,7 +56,7 @@ let cachedConfig: WikiConfig | null = null
  * @param source - The source object to merge (will not be mutated)
  * @returns A new merged object
  */
-export function deepMerge<T extends Record<string, any>>(
+export function deepMerge<T extends Record<string, unknown>>(
   target: T,
   source: Partial<T>
 ): T {

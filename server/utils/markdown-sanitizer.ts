@@ -48,21 +48,8 @@ export async function markdownSanitizerPlugin(md: MarkdownIt): Promise<void> {
     })
   }
 
-  // Store original renderers
-  const defaultHtmlBlockRender =
-    md.renderer.rules.html_block ||
-    function (tokens, idx) {
-      return tokens[idx].content
-    }
-
-  const defaultHtmlInlineRender =
-    md.renderer.rules.html_inline ||
-    function (tokens, idx) {
-      return tokens[idx].content
-    }
-
   // Override html_block renderer
-  md.renderer.rules.html_block = function (tokens, idx, options, env, self) {
+  md.renderer.rules.html_block = function (tokens, idx) {
     const token = tokens[idx]
     const html = token.content
 
@@ -74,7 +61,7 @@ export async function markdownSanitizerPlugin(md: MarkdownIt): Promise<void> {
   }
 
   // Override html_inline renderer
-  md.renderer.rules.html_inline = function (tokens, idx, options, env, self) {
+  md.renderer.rules.html_inline = function (tokens, idx) {
     const token = tokens[idx]
     const html = token.content
 

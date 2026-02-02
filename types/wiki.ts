@@ -4,7 +4,7 @@ export interface FrontMatter {
   author?: string
   date?: string
   tags?: string[]
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface WikiPage {
@@ -163,4 +163,26 @@ export interface SearchResult {
    * Matched terms
    */
   matches: string[]
+}
+
+export interface SearchIndexItem {
+  /**
+   * Page title
+   */
+  title: string
+
+  /**
+   * Page path/slug
+   */
+  path: string
+
+  /**
+   * Tags from front-matter
+   */
+  tags: string[]
+
+  /**
+   * Content excerpt (first 200 chars)
+   */
+  excerpt: string
 }

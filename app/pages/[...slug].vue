@@ -11,10 +11,13 @@ const { data: page, error: pageError } = await useFetch<WikiPage>(`/api/content/
 
 const error = navError.value || pageError.value
 const notFound = pageError.value?.statusCode === 404
+
+const { showUpdateBanner, reload, dismiss } = useLiveReload()
 </script>
 
 <template>
   <div class="wiki-container">
+    <UpdateBanner :show="showUpdateBanner" @reload="reload" @dismiss="dismiss" />
     <WikiSidebar v-if="navigation" :navigation="navigation" />
     <main class="wiki-main">
       <div v-if="notFound" class="not-found">

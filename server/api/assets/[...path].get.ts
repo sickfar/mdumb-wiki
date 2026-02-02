@@ -1,6 +1,5 @@
 import { defineEventHandler, createError, setResponseHeaders } from 'h3'
 import { readFileSync, statSync, existsSync } from 'fs'
-import { join } from 'path'
 import { loadConfig } from '../../utils/config'
 import { validatePath } from '../../utils/security'
 import { isValidAssetExtension, getAssetMimeType } from '../../utils/assets'

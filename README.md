@@ -7,11 +7,13 @@ A simple, fast, file-based markdown wiki built with Nuxt 4 and Bun.
 - 📝 GitHub Flavored Markdown with syntax highlighting
 - 🗂️ File-based structure - your filesystem is the database
 - ⚡ Built with Nuxt 4 and Bun for maximum performance
+- 🔍 **Fuzzy search** with keyboard shortcuts (`/` or `Ctrl+K`)
+- 🔄 **Live reload** - automatic page updates when files change (SSE)
 - 🐳 Docker ready with Bun-based images
-- 🔍 Configurable via JSON + environment variables
+- ⚙️ Configurable via JSON + environment variables
 - 📊 Structured logging with Pino
-- 🧪 Full test coverage with Vitest
-- 🔒 Path traversal protection
+- 🧪 Full test coverage with Vitest (183 tests)
+- 🔒 Path traversal protection and XSS prevention
 - 📱 Responsive design
 
 ## Quick Start
@@ -134,9 +136,11 @@ mdumb-wiki/
 
 ## API Endpoints
 
-- `GET /api/health` - Health check with uptime and system info
+- `GET /api/health` - Health check with uptime, watcher status, and system info
 - `GET /api/navigation` - Get wiki navigation tree
 - `GET /api/content/{path}` - Get markdown content for a page
+- `GET /api/search` - Get search index (all pages with titles, paths, tags, excerpts)
+- `GET /api/events` - Server-Sent Events stream for live reload (file change notifications)
 
 ### Health Endpoint Response
 
@@ -190,6 +194,68 @@ mdumb-wiki/
   "createdAt": "2026-01-01T12:00:00.000Z"
 }
 ```
+
+## Live Reload
+
+MDumb Wiki automatically detects file changes and notifies you to reload the page.
+
+### How It Works
+
+1. **File Watcher**: Uses `chokidar` to monitor your wiki directory for changes
+2. **SSE Connection**: Establishes a Server-Sent Events connection to `/api/events`
+3. **Real-time Updates**: When files change, a banner appears: "📝 Page updated. [Reload]"
+4. **Soft Reload**: Click "Reload" to refresh content without losing your position
+
+### Configuration
+
+Enable/disable live reload in your config:
+
+```json
+{
+  "watch": true
+}
+```
+
+Or via environment variable:
+```bash
+WATCH=false bun run dev
+```
+
+### Features
+
+- Debouncing (300ms) to avoid spam during mass changes
+- Detects file creation, modification, and deletion
+- Automatic reconnection on connection loss
+- Ignores hidden files (`.git`, `.DS_Store`, etc.)
+
+## Search
+
+Fast client-side fuzzy search across all your wiki pages.
+
+### Keyboard Shortcuts
+
+- **`/`** - Open search modal
+- **`Ctrl+K`** or **`Cmd+K`** - Open search (alternative)
+- **`↑` / `↓`** - Navigate results
+- **`Enter`** - Select current result
+- **`Esc`** - Close search modal
+
+### Search Index
+
+The search index includes:
+- Page titles
+- File paths
+- Tags from front-matter
+- Content excerpts (first 200 chars)
+
+Search results are **fuzzy matched** (finds "instal" in "installation") and limited to the top 10 matches.
+
+### How It Works
+
+1. **Index Building**: Server scans all `.md` files and builds a search index at `/api/search`
+2. **Client Search**: Uses Fuse.js for fast fuzzy matching
+3. **Live Updates**: Search index rebuilds when files change
+4. **Debouncing**: 150ms debounce for smooth typing experience
 
 ## Writing Content
 
@@ -314,8 +380,11 @@ docker-compose build
 - **Framework:** Nuxt 4 (Vue 3, TypeScript)
 - **Runtime:** Bun
 - **Markdown:** markdown-it, shiki (syntax highlighting)
+- **Search:** Fuse.js (fuzzy search)
+- **File Watching:** chokidar (live reload)
+- **Utilities:** @vueuse/core (keyboard shortcuts, composables)
 - **Logging:** pino, pino-pretty
-- **Testing:** vitest
+- **Testing:** vitest (183 tests)
 - **Styling:** Custom CSS (no framework for minimal design)
 
 ## Security
@@ -349,13 +418,17 @@ MIT
 - [x] Security (path validation)
 - [x] Structured logging
 
-### v1.1 (Next)
-- [ ] Live reload (SSE + file watching)
-- [ ] Search functionality (Fuse.js)
+### v1.1 (Current) ✅
+- [x] Live reload (SSE + file watching)
+- [x] Search functionality (Fuse.js)
 - [ ] Git auto-sync
 - [ ] Dark theme toggle
 - [ ] Breadcrumbs navigation
+
+### v1.2 (Next)
 - [ ] Mobile optimizations
+- [ ] Table of contents
+- [ ] Recent changes feed
 
 ### v2.0 (Future)
 - [ ] Web-based editor

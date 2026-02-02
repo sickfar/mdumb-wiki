@@ -15,6 +15,7 @@ defineProps<{
       </p>
     </header>
 
+    <!-- eslint-disable-next-line vue/no-v-html, vue/html-self-closing -->
     <div class="markdown-body" v-html="page.html"></div>
   </article>
 </template>

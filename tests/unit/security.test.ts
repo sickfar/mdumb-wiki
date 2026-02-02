@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { validatePath } from '../../server/utils/security'
 import path from 'node:path'
 

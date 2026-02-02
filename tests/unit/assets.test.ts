@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest'
-import { mkdir, writeFile, rm } from 'fs/promises'
+import { mkdir, rm } from 'fs/promises'
 import { join } from 'path'
 import {
   resolveAssetPath,

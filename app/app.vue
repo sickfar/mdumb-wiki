@@ -1,5 +1,6 @@
 <template>
   <div>
+    <SearchModal />
     <NuxtPage />
   </div>
 </template>

@@ -2,7 +2,7 @@ import { buildNavigation } from '../utils/navigation'
 import { loadConfig } from '../utils/config'
 import { getLogger } from '../utils/logger'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   const logger = await getLogger()
 
   try {

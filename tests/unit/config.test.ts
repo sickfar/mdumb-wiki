@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { loadConfig, clearConfigCache } from '../../server/utils/config'
 import type { WikiConfig } from '../../types/config'
-import { existsSync, readFileSync, mkdirSync, writeFileSync, unlinkSync, rmSync } from 'fs'
+import { existsSync, mkdirSync, writeFileSync, unlinkSync, rmSync } from 'fs'
 import { join } from 'path'
-import { homedir } from 'os'
 
 describe('Config System', () => {
   const originalEnv = { ...process.env }

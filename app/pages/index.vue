@@ -5,10 +5,13 @@ const { data: navigation, error: navError } = await useFetch<NavigationItem[]>('
 const { data: page, error: pageError } = await useFetch<WikiPage>('/api/content/index')
 
 const error = navError.value || pageError.value
+
+const { showUpdateBanner, reload, dismiss } = useLiveReload()
 </script>
 
 <template>
   <div class="wiki-container">
+    <UpdateBanner :show="showUpdateBanner" @reload="reload" @dismiss="dismiss" />
     <WikiSidebar v-if="navigation" :navigation="navigation" />
     <main class="wiki-main">
       <div v-if="error" class="error-container">
