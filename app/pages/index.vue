@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NavigationItem, WikiPage } from '../../types/wiki'
 
-const { data: navigation, error: navError } = await useFetch<NavigationItem[]>('/api/navigation')
+const { data: navigation, error: navError } = await useFetch<NavigationItem[]>('/api/navigation', { key: 'navigation' })
 const { data: page, error: pageError } = await useFetch<WikiPage>('/api/content/index')
 
 const error = navError.value || pageError.value

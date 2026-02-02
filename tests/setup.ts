@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, afterAll, afterEach, vi } from 'vitest'
+import { beforeAll, afterAll, afterEach, vi } from 'vitest'
 
 // Setup runs before all tests
 beforeAll(() => {

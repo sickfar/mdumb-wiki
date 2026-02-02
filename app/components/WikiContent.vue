@@ -28,29 +28,33 @@ defineProps<{
 .wiki-header {
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
+  transition: border-color 0.2s ease;
 }
 
 .wiki-title {
   font-size: 2.25rem;
   font-weight: 700;
-  color: #1a202c;
+  color: var(--color-text-primary);
   margin: 0 0 0.5rem 0;
   line-height: 1.2;
+  transition: color 0.2s ease;
 }
 
 .wiki-description {
   font-size: 1.125rem;
-  color: #4a5568;
+  color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.6;
+  transition: color 0.2s ease;
 }
 
 /* Markdown content styles */
 .markdown-body {
   font-size: 1rem;
   line-height: 1.7;
-  color: #2d3748;
+  color: var(--color-text-primary);
+  transition: color 0.2s ease;
 }
 
 .markdown-body :deep(h1),
@@ -63,18 +67,19 @@ defineProps<{
   margin-bottom: 0.75em;
   font-weight: 600;
   line-height: 1.25;
-  color: #1a202c;
+  color: var(--color-text-primary);
+  transition: color 0.2s ease;
 }
 
 .markdown-body :deep(h1) {
   font-size: 2rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
   padding-bottom: 0.3em;
 }
 
 .markdown-body :deep(h2) {
   font-size: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
   padding-bottom: 0.3em;
 }
 
@@ -91,8 +96,9 @@ defineProps<{
 }
 
 .markdown-body :deep(a) {
-  color: #3182ce;
+  color: var(--color-accent);
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .markdown-body :deep(a:hover) {
@@ -110,34 +116,38 @@ defineProps<{
 }
 
 .markdown-body :deep(code) {
-  background-color: #f7fafc;
+  background-color: var(--color-code-bg);
   padding: 0.2em 0.4em;
   border-radius: 3px;
   font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
   font-size: 0.9em;
+  transition: background-color 0.2s ease;
 }
 
 .markdown-body :deep(pre) {
-  background-color: #1a202c;
+  background-color: var(--color-pre-bg);
   padding: 1em;
   border-radius: 0.5rem;
   overflow-x: auto;
   margin: 1.5em 0;
+  transition: background-color 0.2s ease;
 }
 
 .markdown-body :deep(pre code) {
   background-color: transparent;
   padding: 0;
-  color: #e2e8f0;
+  color: var(--color-pre-text);
   font-size: 0.875rem;
+  transition: color 0.2s ease;
 }
 
 .markdown-body :deep(blockquote) {
-  border-left: 4px solid #cbd5e0;
+  border-left: 4px solid var(--color-border-secondary);
   padding-left: 1em;
   margin: 1em 0;
-  color: #4a5568;
+  color: var(--color-text-secondary);
   font-style: italic;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .markdown-body :deep(table) {
@@ -148,14 +158,16 @@ defineProps<{
 
 .markdown-body :deep(th),
 .markdown-body :deep(td) {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   padding: 0.75em;
   text-align: left;
+  transition: border-color 0.2s ease;
 }
 
 .markdown-body :deep(th) {
-  background-color: #f7fafc;
+  background-color: var(--color-bg-secondary);
   font-weight: 600;
+  transition: background-color 0.2s ease;
 }
 
 .markdown-body :deep(img) {
@@ -167,7 +179,8 @@ defineProps<{
 
 .markdown-body :deep(hr) {
   border: none;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
   margin: 2em 0;
+  transition: border-color 0.2s ease;
 }
 </style>

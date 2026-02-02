@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { StatusResult } from 'simple-git'
 
 // Import after mocking
@@ -35,7 +35,7 @@ const mockSimpleGitInstance = {
 }
 
 vi.mock('simple-git', async (importOriginal) => {
-  const actual = await importOriginal() as any
+  const actual = await importOriginal<typeof import('simple-git')>()
   return {
     ...actual,
     simpleGit: vi.fn(() => mockSimpleGitInstance)
@@ -44,7 +44,7 @@ vi.mock('simple-git', async (importOriginal) => {
 
 // Mock logger
 vi.mock('../../server/utils/logger', async (importOriginal) => {
-  const actual = await importOriginal() as any
+  const actual = await importOriginal<typeof import('../../server/utils/logger')>()
   return {
     ...actual,
     getLogger: vi.fn(() => ({

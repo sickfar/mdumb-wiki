@@ -154,7 +154,7 @@ async function performSync(): Promise<void> {
       logger.info('Starting sync operation')
 
       // Check for changes
-      const hasChanges = await checkForChanges(config.contentPath)
+      const hasChanges = await checkForChanges()
 
       if (!hasChanges) {
         logger.info('No changes detected')
@@ -171,14 +171,14 @@ async function performSync(): Promise<void> {
           '{timestamp}',
           new Date().toISOString()
         )
-        await commitChanges(config.contentPath, commitMessage)
+        await commitChanges(commitMessage)
         logger.info('Changes committed', { message: commitMessage })
       }
 
       // Push changes if enabled
       if (config.git.autoPush) {
         syncStatus.currentOperation = 'pushing changes'
-        await pushChanges(config.contentPath, config.git.conflictStrategy)
+        await pushChanges()
         logger.info('Changes pushed')
       }
 

@@ -28,20 +28,21 @@ const { isOpen, toggle } = useMobileSidebar()
   justify-content: center;
   width: 44px;
   height: 44px;
-  background-color: #1f2937;
-  border: none;
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition: background-color 0.15s, border-color 0.2s ease;
 }
 
 .burger-menu:hover {
-  background-color: #374151;
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .burger-menu:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #3b82f6;
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 /* Hidden on desktop */

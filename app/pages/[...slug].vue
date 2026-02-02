@@ -6,7 +6,7 @@ const slug = Array.isArray(route.params.slug)
   ? route.params.slug.join('/')
   : route.params.slug
 
-const { data: navigation, error: navError } = await useFetch<NavigationItem[]>('/api/navigation')
+const { data: navigation, error: navError } = await useFetch<NavigationItem[]>('/api/navigation', { key: 'navigation' })
 const { data: page, error: pageError } = await useFetch<WikiPage>(`/api/content/${slug}`)
 
 const error = navError.value || pageError.value

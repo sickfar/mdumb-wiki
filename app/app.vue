@@ -22,11 +22,50 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #ffffff;
-  color: #2d3748;
 }
 
 #__nuxt {
   min-height: 100vh;
+}
+
+/* Theme CSS Custom Properties */
+:root[data-theme="light"] {
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f7fafc;
+  --color-bg-tertiary: #edf2f7;
+  --color-text-primary: #2d3748;
+  --color-text-secondary: #4a5568;
+  --color-text-tertiary: #718096;
+  --color-border: #e2e8f0;
+  --color-border-secondary: #cbd5e0;
+  --color-accent: #3182ce;
+  --color-accent-hover: #2c5282;
+  --color-code-bg: #f7fafc;
+  --color-pre-bg: #1a202c;
+  --color-pre-text: #e2e8f0;
+}
+
+:root[data-theme="dark"] {
+  --color-bg-primary: #1a202c;
+  --color-bg-secondary: #2d3748;
+  --color-bg-tertiary: #4a5568;
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #cbd5e0;
+  --color-text-tertiary: #a0aec0;
+  --color-border: #4a5568;
+  --color-border-secondary: #2d3748;
+  --color-accent: #63b3ed;
+  --color-accent-hover: #4299e1;
+  --color-code-bg: #2d3748;
+  --color-pre-bg: #0d1117;
+  --color-pre-text: #c9d1d9;
+}
+
+/* Apply theme to body */
+html,
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 </style>

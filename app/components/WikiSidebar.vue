@@ -6,6 +6,7 @@ defineProps<{
 }>()
 
 const search = useSearch()
+const theme = useTheme()
 const { isOpen } = useMobileSidebar()
 </script>
 
@@ -16,6 +17,15 @@ const { isOpen } = useMobileSidebar()
   >
     <div class="sidebar-header">
       <h2 class="sidebar-title">MDumb Wiki</h2>
+      <button
+        class="theme-toggle"
+        :title="`Theme: ${theme.theme}`"
+        aria-label="Toggle theme"
+        @click="theme.toggle()"
+      >
+        <span v-if="theme.resolvedTheme === 'light'" aria-hidden="true">🌙</span>
+        <span v-else aria-hidden="true">☀️</span>
+      </button>
       <button class="search-button" title="Search (/)" @click="search.open()">
         <span class="search-icon">🔍</span>
         <span class="search-text">Search</span>
@@ -36,12 +46,12 @@ const { isOpen } = useMobileSidebar()
 /* Mobile-first: sidebar hidden by default on small screens */
 .wiki-sidebar {
   width: 280px;
-  border-right: 1px solid #e2e8f0;
-  background-color: #f7fafc;
+  border-right: 1px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
   padding: 1.5rem 1rem;
   overflow-y: auto;
   height: 100vh;
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out, background-color 0.2s ease, border-color 0.2s ease;
 
   /* Mobile default: fixed, off-screen */
   position: fixed;
@@ -71,8 +81,29 @@ const { isOpen } = useMobileSidebar()
 .sidebar-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1a202c;
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
+  transition: color 0.2s ease;
+}
+
+.theme-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.theme-toggle:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .search-button {
@@ -81,17 +112,17 @@ const { isOpen } = useMobileSidebar()
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 0.875rem;
-  background: white;
-  border: 1px solid #d1d5db;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-secondary);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
-  color: #6b7280;
+  color: var(--color-text-tertiary);
   font-size: 0.875rem;
 }
 
 .search-button:hover {
-  border-color: #9ca3af;
+  border-color: var(--color-accent);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -108,9 +139,10 @@ const { isOpen } = useMobileSidebar()
   font-family: monospace;
   font-size: 0.75rem;
   padding: 0.125rem 0.375rem;
-  background: #f3f4f6;
+  background: var(--color-bg-tertiary);
   border-radius: 3px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-secondary);
+  transition: all 0.15s;
 }
 
 .wiki-nav {

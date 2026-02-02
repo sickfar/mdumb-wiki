@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { ref, computed, watch, nextTick } from 'vue'
 
 // Create a test version of the composable that doesn't depend on Nuxt

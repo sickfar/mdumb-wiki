@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { WikiConfig } from '../../types'
 
 // Create mock functions
@@ -8,10 +8,8 @@ const mockCommitChanges = vi.fn()
 const mockPushChanges = vi.fn()
 
 // Mock dependencies
-vi.mock('../../server/utils/git-sync', async (importOriginal) => {
-  const actual = await importOriginal() as any
+vi.mock('../../server/utils/git-sync', () => {
   return {
-    ...actual,
     checkForChanges: mockCheckForChanges,
     commitChanges: mockCommitChanges,
     pushChanges: mockPushChanges,
@@ -31,10 +29,8 @@ const mockGetConfig = vi.fn(() => ({
   }
 } as WikiConfig))
 
-vi.mock('../../server/utils/config', async (importOriginal) => {
-  const actual = await importOriginal() as any
+vi.mock('../../server/utils/config', () => {
   return {
-    ...actual,
     getConfig: mockGetConfig
   }
 })
@@ -46,10 +42,8 @@ const mockLoggerInstance = {
   debug: vi.fn()
 }
 
-vi.mock('../../server/utils/logger', async (importOriginal) => {
-  const actual = await importOriginal() as any
+vi.mock('../../server/utils/logger', () => {
   return {
-    ...actual,
     getLogger: vi.fn(() => mockLoggerInstance)
   }
 })
@@ -174,20 +168,19 @@ describe('sync-manager', () => {
 
     it('should trigger an immediate sync', async () => {
       await forceSync()
-      expect(mockCheckForChanges).toHaveBeenCalledWith('./wiki')
+      expect(mockCheckForChanges).toHaveBeenCalledWith()
     })
 
     it('should commit changes if autoCommit is enabled', async () => {
       await forceSync()
       expect(mockCommitChanges).toHaveBeenCalledWith(
-        './wiki',
         expect.stringContaining('Auto-commit:')
       )
     })
 
     it('should push changes if autoPush is enabled', async () => {
       await forceSync()
-      expect(mockPushChanges).toHaveBeenCalledWith('./wiki', 'rebase')
+      expect(mockPushChanges).toHaveBeenCalledWith()
     })
 
     it('should not commit if autoCommit is disabled', async () => {
@@ -254,7 +247,7 @@ describe('sync-manager', () => {
     it('should replace {timestamp} in commit message template', async () => {
       await forceSync()
       const commitCall = mockCommitChanges.mock.calls[0]
-      const commitMessage = commitCall[1]
+      const commitMessage = commitCall[0]
 
       expect(commitMessage).toMatch(/^Auto-commit: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     })

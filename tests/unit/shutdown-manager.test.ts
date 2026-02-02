@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mockProcessExit } from 'vitest-mock-process'
 
 // Mock process.exit using vitest-mock-process
@@ -16,7 +16,7 @@ const mockLogger = {
 }
 
 vi.mock('../../server/utils/file-watcher', async (importOriginal) => {
-  const actual = await importOriginal() as any
+  const actual = await importOriginal<typeof import('../../server/utils/file-watcher')>()
   return {
     ...actual,
     fileWatcher: {
@@ -27,7 +27,7 @@ vi.mock('../../server/utils/file-watcher', async (importOriginal) => {
 })
 
 vi.mock('../../server/utils/sync-manager', async (importOriginal) => {
-  const actual = await importOriginal() as any
+  const actual = await importOriginal<typeof import('../../server/utils/sync-manager')>()
   return {
     ...actual,
     stop: mockStopSyncManager
@@ -35,7 +35,7 @@ vi.mock('../../server/utils/sync-manager', async (importOriginal) => {
 })
 
 vi.mock('../../server/utils/git-sync', async (importOriginal) => {
-  const actual = await importOriginal() as any
+  const actual = await importOriginal<typeof import('../../server/utils/git-sync')>()
   return {
     ...actual,
     commitPendingChanges: mockCommitPendingChanges
@@ -43,7 +43,7 @@ vi.mock('../../server/utils/git-sync', async (importOriginal) => {
 })
 
 vi.mock('../../server/utils/config', async (importOriginal) => {
-  const actual = await importOriginal() as any
+  const actual = await importOriginal<typeof import('../../server/utils/config')>()
   return {
     ...actual,
     getConfig: mockGetConfig
@@ -51,7 +51,7 @@ vi.mock('../../server/utils/config', async (importOriginal) => {
 })
 
 vi.mock('../../server/utils/logger', async (importOriginal) => {
-  const actual = await importOriginal() as any
+  const actual = await importOriginal<typeof import('../../server/utils/logger')>()
   return {
     ...actual,
     getLogger: vi.fn(async () => mockLogger)

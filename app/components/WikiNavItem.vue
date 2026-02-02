@@ -85,12 +85,12 @@ if (isActive.value || hasActiveChild.value) {
   user-select: none;
   border-radius: 0.375rem;
   font-weight: 500;
-  color: #2d3748;
-  transition: background-color 0.15s ease;
+  color: var(--color-text-primary);
+  transition: background-color 0.15s ease, color 0.2s ease;
 }
 
 .nav-folder-title:hover {
-  background-color: #e2e8f0;
+  background-color: var(--color-bg-tertiary);
 }
 
 .nav-folder-link {
@@ -103,7 +103,7 @@ if (isActive.value || hasActiveChild.value) {
 }
 
 .nav-folder-link:hover {
-  color: #3182ce;
+  color: var(--color-accent);
 }
 
 .nav-folder-icon {
@@ -119,30 +119,31 @@ if (isActive.value || hasActiveChild.value) {
 .nav-folder-children {
   margin-left: 1rem;
   padding-left: 0.75rem;
-  border-left: 1px solid #e2e8f0;
+  border-left: 1px solid var(--color-border);
+  transition: border-color 0.2s ease;
 }
 
 .nav-link {
   display: block;
   padding: 0.5rem 0.75rem;
   border-radius: 0.375rem;
-  color: #4a5568;
+  color: var(--color-text-secondary);
   text-decoration: none;
   transition: all 0.15s ease;
 }
 
 .nav-link:hover {
-  background-color: #e2e8f0;
-  color: #2d3748;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
 }
 
 .nav-link-active {
-  background-color: #3182ce;
+  background-color: var(--color-accent);
   color: white;
   font-weight: 500;
 }
 
 .nav-link-active:hover {
-  background-color: #2c5282;
+  background-color: var(--color-accent-hover);
 }
 </style>

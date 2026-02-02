@@ -1,3 +1,5 @@
+import { refreshNuxtData } from '#app'
+
 export function useLiveReload() {
   const showUpdateBanner = ref(false)
   const eventSource = ref<EventSource | null>(null)
@@ -22,34 +24,27 @@ export function useLiveReload() {
       es.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data)
+
           if (data.type === 'file:changed' && data.path) {
             if (isCurrentPage(data.path)) {
               showUpdateBanner.value = true
             }
           }
+
+          if (data.type === 'file:created') {
+            refreshNuxtData('navigation')
+          }
+
+          if (data.type === 'file:deleted') {
+            if (isCurrentPage(data.path)) {
+              showUpdateBanner.value = true
+            }
+            refreshNuxtData('navigation')
+          }
         } catch (error) {
           console.error('[LiveReload] Failed to parse:', error)
         }
       }
-
-      eventSource.value.addEventListener('file:changed', (e) => {
-        const data = JSON.parse(e.data)
-        if (isCurrentPage(data.path)) {
-          showUpdateBanner.value = true
-        }
-      })
-
-      eventSource.value.addEventListener('file:deleted', (e) => {
-        const data = JSON.parse(e.data)
-        if (isCurrentPage(data.path)) {
-          showUpdateBanner.value = true
-        }
-      })
-
-      eventSource.value.addEventListener('file:created', (e) => {
-        const _data = JSON.parse(e.data)
-        // Could update navigation here
-      })
 
       eventSource.value.onerror = (error) => {
         console.error('[LiveReload] Connection error:', error)
