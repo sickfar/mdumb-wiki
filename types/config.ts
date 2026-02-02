@@ -63,6 +63,50 @@ export interface WikiConfig {
    * @default true
    */
   enableCache: boolean
+
+  /**
+   * Security configuration for HTML sanitization
+   */
+  security: {
+    /**
+     * Enable HTML sanitization to prevent XSS attacks
+     * @default true
+     */
+    sanitizeHtml: boolean
+    /**
+     * Allowed HTML tags that won't be stripped
+     */
+    allowedTags: string[]
+    /**
+     * Allowed HTML attributes per tag
+     */
+    allowedAttributes: Record<string, string[]>
+  }
+
+  /**
+   * Asset handling configuration
+   */
+  assets: {
+    /**
+     * File extensions allowed for serving as assets
+     */
+    allowedExtensions: string[]
+    /**
+     * Maximum file size in bytes (0 = unlimited)
+     * @default 10485760 (10MB)
+     */
+    maxFileSize: number
+    /**
+     * Enable caching for asset responses
+     * @default true
+     */
+    enableCache: boolean
+    /**
+     * Cache duration in seconds
+     * @default 3600 (1 hour)
+     */
+    cacheDuration: number
+  }
 }
 
 export type PartialWikiConfig = Partial<WikiConfig>

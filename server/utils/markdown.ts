@@ -4,6 +4,8 @@ import { getHighlighter } from 'shiki'
 import matter from 'gray-matter'
 import type { WikiPage, FrontMatter } from '../../types/wiki'
 import { loadConfig } from './config'
+import { markdownLinkPlugin } from './markdown-link-plugin'
+import { markdownSanitizerPlugin } from './markdown-sanitizer'
 
 /**
  * Singleton markdown parser instance
@@ -78,6 +80,12 @@ export async function getMarkdownParser(): Promise<MarkdownIt> {
       })
     )
 
+    // Add link conversion plugin
+    md.use(markdownLinkPlugin)
+
+    // Add HTML sanitization plugin
+    await markdownSanitizerPlugin(md)
+
     // Cache the parser
     markdownParser = md
 
@@ -115,8 +123,9 @@ export async function parseMarkdown(
     markdownContent = content
   }
 
-  // Render markdown to HTML
-  const html = md.render(markdownContent)
+  // Render markdown to HTML with environment context
+  const env = { currentPath: path }
+  const html = md.render(markdownContent, env)
 
   // Extract title from front matter or use default
   const title = frontMatter.title || 'Untitled'

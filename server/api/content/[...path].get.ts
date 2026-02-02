@@ -76,7 +76,14 @@ export default defineEventHandler(async (event) => {
       throw error
     }
 
-    logger.error(`Error serving content for path: ${pathParam}`, { error })
+    logger.error('Error serving content', {
+      path: pathParam,
+      error: error instanceof Error ? {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      } : error
+    })
 
     throw createError({
       statusCode: 500,

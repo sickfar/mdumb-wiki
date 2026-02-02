@@ -7,5 +7,16 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/image',
     '@nuxt/test-utils'
-  ]
+  ],
+
+  runtimeConfig: {
+    public: {
+      isDev: process.env.NODE_ENV === 'development'
+    }
+  },
+
+  routeRules: {
+    // Ensure API routes are not caught by page catch-all
+    '/api/**': { ssr: false }
+  }
 })

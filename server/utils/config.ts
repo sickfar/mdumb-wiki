@@ -16,7 +16,33 @@ const DEFAULT_CONFIG: WikiConfig = {
   syntaxTheme: 'github-dark',
   maxConcurrentOps: 10,
   cacheTTL: 60000, // 1 minute
-  enableCache: true
+  enableCache: true,
+  security: {
+    sanitizeHtml: true,
+    allowedTags: [
+      'b', 'i', 'em', 'strong', 'code', 'pre', 'a', 'img', 'ul', 'ol', 'li',
+      'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'br',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'div'
+    ],
+    allowedAttributes: {
+      '*': ['class', 'id'],
+      'a': ['href', 'title', 'target'],
+      'img': ['src', 'alt', 'title', 'width', 'height'],
+      'code': ['class'],
+      'pre': ['class'],
+      'span': ['class', 'style'],
+      'div': ['class']
+    }
+  },
+  assets: {
+    allowedExtensions: [
+      '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.pdf',
+      '.zip', '.tar.gz', '.mp4', '.webm', '.ico'
+    ],
+    maxFileSize: 10485760, // 10MB
+    enableCache: true,
+    cacheDuration: 3600 // 1 hour
+  }
 }
 
 /**

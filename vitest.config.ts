@@ -6,6 +6,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
+    testTimeout: 10000, // 10 seconds for regular tests
+    hookTimeout: 30000, // 30 seconds for beforeAll/afterAll hooks (needed for Nuxt e2e cleanup)
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

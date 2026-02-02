@@ -329,4 +329,41 @@ Content`
       expect(parsers[2]).toBeDefined()
     })
   })
+
+  describe('Link Resolution', () => {
+    it('should convert relative markdown links to routes', async () => {
+      const markdown = '[Installation](./installation.md)'
+      const result = await parseMarkdown(markdown, 'guide.md')
+
+      expect(result.html).toContain('href="/installation"')
+    })
+
+    it('should convert parent directory links', async () => {
+      const markdown = '[Back](../index.md)'
+      const result = await parseMarkdown(markdown, 'docs/guide.md')
+
+      expect(result.html).toContain('href="/"')
+    })
+
+    it('should preserve external links', async () => {
+      const markdown = '[Example](https://example.com)'
+      const result = await parseMarkdown(markdown, 'guide.md')
+
+      expect(result.html).toContain('href="https://example.com"')
+    })
+
+    it('should preserve anchor links', async () => {
+      const markdown = '[Section](#introduction)'
+      const result = await parseMarkdown(markdown, 'guide.md')
+
+      expect(result.html).toContain('href="#introduction"')
+    })
+
+    it('should handle links with anchors', async () => {
+      const markdown = '[API Methods](./api.md#methods)'
+      const result = await parseMarkdown(markdown, 'guide.md')
+
+      expect(result.html).toContain('href="/api#methods"')
+    })
+  })
 })

@@ -36,8 +36,15 @@ if (isActive.value || hasActiveChild.value) {
     <!-- Folder with children -->
     <details v-if="item.children && item.children.length > 0" :open="isOpen" class="nav-folder">
       <summary class="nav-folder-title">
-        <span class="nav-folder-icon">▶</span>
-        <span>{{ item.title }}</span>
+        <span class="nav-folder-icon" @click.stop>▶</span>
+        <NuxtLink
+          :to="`/${item.slug}`"
+          class="nav-folder-link"
+          :class="{ 'nav-link-active': isActive }"
+          @click.stop
+        >
+          {{ item.title }}
+        </NuxtLink>
       </summary>
       <div class="nav-folder-children">
         <WikiNavItem
@@ -84,6 +91,19 @@ if (isActive.value || hasActiveChild.value) {
 
 .nav-folder-title:hover {
   background-color: #e2e8f0;
+}
+
+.nav-folder-link {
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease;
+}
+
+.nav-folder-link:hover {
+  color: #3182ce;
 }
 
 .nav-folder-icon {
