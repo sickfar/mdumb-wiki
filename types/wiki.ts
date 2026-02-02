@@ -136,6 +136,36 @@ export interface HealthStatus {
    * Any error messages
    */
   errors?: string[]
+
+  /**
+   * Git sync status (if enabled)
+   */
+  git?: {
+    /**
+     * Whether git sync is enabled
+     */
+    enabled: boolean
+    /**
+     * Last sync timestamp
+     */
+    lastSync: Date | null
+    /**
+     * Whether working directory is clean
+     */
+    upToDate: boolean
+    /**
+     * Current branch name
+     */
+    branch: string
+    /**
+     * Last commit hash
+     */
+    lastCommit: string | null
+    /**
+     * Any git errors
+     */
+    errors?: string[]
+  }
 }
 
 export interface SearchResult {

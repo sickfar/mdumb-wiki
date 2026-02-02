@@ -2,7 +2,7 @@ export function useKeyboardShortcuts(search: ReturnType<typeof useSearch>) {
   const handleKeyDown = (e: KeyboardEvent) => {
     const target = e.target as HTMLElement
     const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
-    const isSearchInput = target.classList.contains('search-input')
+    const _isSearchInput = target.classList.contains('search-input')
 
     // "/" opens search (unless typing in an input that's NOT the search)
     if (e.key === '/' && !search.isOpen.value && !isTyping) {

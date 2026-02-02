@@ -6,10 +6,14 @@ defineProps<{
 }>()
 
 const search = useSearch()
+const { isOpen } = useMobileSidebar()
 </script>
 
 <template>
-  <aside class="wiki-sidebar">
+  <aside
+    class="wiki-sidebar"
+    :class="{ 'sidebar-open': isOpen }"
+  >
     <div class="sidebar-header">
       <h2 class="sidebar-title">MDumb Wiki</h2>
       <button class="search-button" title="Search (/)" @click="search.open()">
@@ -29,15 +33,35 @@ const search = useSearch()
 </template>
 
 <style scoped>
+/* Mobile-first: sidebar hidden by default on small screens */
 .wiki-sidebar {
   width: 280px;
   border-right: 1px solid #e2e8f0;
   background-color: #f7fafc;
   padding: 1.5rem 1rem;
   overflow-y: auto;
-  position: sticky;
-  top: 0;
   height: 100vh;
+  transition: transform 0.3s ease-in-out;
+
+  /* Mobile default: fixed, off-screen */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  transform: translateX(-100%);
+}
+
+/* When open on mobile, slide in */
+.wiki-sidebar.sidebar-open {
+  transform: translateX(0);
+}
+
+/* Desktop: always visible, sticky */
+@media (min-width: 768px) {
+  .wiki-sidebar {
+    position: sticky;
+    transform: translateX(0);
+  }
 }
 
 .sidebar-header {

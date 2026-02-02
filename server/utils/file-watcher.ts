@@ -21,10 +21,19 @@ class FileWatcher extends EventEmitter {
 
   /**
    * Start watching the specified directory for file changes
+   * Note: If a watcher is already active, it will be stopped first (synchronously)
    */
   start(wikiPath: string): void {
     if (this.watcher) {
-      this.stop()
+      // Synchronously close the existing watcher to avoid race conditions
+      // This is a workaround since start() is sync but stop() is async
+      this.watcher.close()
+      this.watcher = null
+      // Clear all debounce timers
+      for (const timer of this.debounceTimers.values()) {
+        clearTimeout(timer)
+      }
+      this.debounceTimers.clear()
     }
 
     this.watchedPath = wikiPath
@@ -37,6 +46,9 @@ class FileWatcher extends EventEmitter {
         '**/.git/**',
       ],
       persistent: true,
+      // Use polling in test environment to avoid EMFILE issues with FSEvents
+      usePolling: process.env.NODE_ENV === 'test',
+      interval: process.env.NODE_ENV === 'test' ? 100 : undefined,
       awaitWriteFinish: {
         stabilityThreshold: 100,
         pollInterval: 50,
@@ -66,10 +78,11 @@ class FileWatcher extends EventEmitter {
 
   /**
    * Stop the file watcher and cleanup resources
+   * @returns Promise that resolves when the watcher is fully closed
    */
-  stop(): void {
+  async stop(): Promise<void> {
     if (this.watcher) {
-      this.watcher.close()
+      await this.watcher.close()
       this.watcher = null
     }
 

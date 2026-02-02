@@ -2,6 +2,8 @@ import { getLogger } from '../utils/logger'
 import { loadConfig } from '../utils/config'
 import { fileWatcher } from '../utils/file-watcher'
 import { invalidateSearchCache } from '../api/search.get'
+import { start as startSyncManager } from '../utils/sync-manager'
+import { shutdown } from '../utils/shutdown-manager'
 
 /**
  * Nitro plugin for wiki initialization and shutdown logging
@@ -60,13 +62,25 @@ export default defineNitroPlugin(async (nitroApp) => {
     logger.info('File watcher disabled (watch: false)')
   }
 
+  // Start git sync manager if enabled
+  if (config.git?.enabled) {
+    startSyncManager()
+    logger.info(
+      { interval: config.git.syncInterval },
+      'Git sync manager started'
+    )
+  } else {
+    logger.info('Git sync disabled (git.enabled: false)')
+  }
+
   logger.info('MDumb Wiki ready to serve content')
 
-  // Hook into close event for shutdown logging
+  // Register process signal handlers for graceful shutdown
+  process.on('SIGTERM', () => shutdown('SIGTERM'))
+  process.on('SIGINT', () => shutdown('SIGINT'))
+
+  // Hook into close event for graceful shutdown
   nitroApp.hooks.hook('close', async () => {
-    logger.info('MDumb Wiki shutting down')
-    fileWatcher.stop()
-    logger.info('File watcher stopped')
-    logger.info('Cleanup completed, goodbye!')
+    await shutdown('NITRO_CLOSE')
   })
 })

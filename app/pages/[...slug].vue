@@ -18,6 +18,8 @@ const { showUpdateBanner, reload, dismiss } = useLiveReload()
 <template>
   <div class="wiki-container">
     <UpdateBanner :show="showUpdateBanner" @reload="reload" @dismiss="dismiss" />
+    <BurgerMenu />
+    <SidebarBackdrop />
     <WikiSidebar v-if="navigation" :navigation="navigation" />
     <main class="wiki-main">
       <div v-if="notFound" class="not-found">

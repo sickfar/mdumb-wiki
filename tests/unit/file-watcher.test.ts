@@ -7,14 +7,16 @@ describe('FileWatcher', () => {
   let testDir: string
 
   beforeEach(async () => {
+    // Ensure any previous watcher is stopped before starting fresh
+    await fileWatcher.stop()
     // Create temporary test directory
     testDir = join(process.cwd(), 'tests', 'fixtures', 'watch-test-' + Date.now())
     await fs.mkdir(testDir, { recursive: true })
   })
 
   afterEach(async () => {
-    // Stop watcher and cleanup
-    fileWatcher.stop()
+    // Stop watcher and cleanup - must await to prevent EMFILE errors
+    await fileWatcher.stop()
     await fs.rm(testDir, { recursive: true, force: true })
   })
 
@@ -145,11 +147,11 @@ describe('FileWatcher', () => {
     expect(eventEmitted).toBe(false)
   })
 
-  it('should stop watcher on cleanup', () => {
+  it('should stop watcher on cleanup', async () => {
     fileWatcher.start(testDir)
     expect(fileWatcher.getStatus().active).toBe(true)
 
-    fileWatcher.stop()
+    await fileWatcher.stop()
     expect(fileWatcher.getStatus().active).toBe(false)
   })
 

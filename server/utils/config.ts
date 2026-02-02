@@ -42,6 +42,14 @@ const DEFAULT_CONFIG: WikiConfig = {
     maxFileSize: 10485760, // 10MB
     enableCache: true,
     cacheDuration: 3600 // 1 hour
+  },
+  git: {
+    enabled: false, // Disabled by default (user must opt-in)
+    syncInterval: 5, // 5 minutes
+    autoCommit: true,
+    autoPush: true,
+    commitMessageTemplate: 'Auto-commit: {timestamp}',
+    conflictStrategy: 'rebase'
   }
 }
 
@@ -146,6 +154,32 @@ function loadEnvConfig(): Partial<WikiConfig> {
     }
   }
 
+  // Git configuration environment variables
+  if (process.env.GIT_ENABLED !== undefined) {
+    const gitEnabled = process.env.GIT_ENABLED.toLowerCase() === 'true'
+    envConfig.git = { ...envConfig.git, enabled: gitEnabled }
+  }
+
+  if (process.env.GIT_SYNC_INTERVAL) {
+    const syncInterval = parseInt(process.env.GIT_SYNC_INTERVAL, 10)
+    if (!isNaN(syncInterval) && syncInterval > 0) {
+      envConfig.git = { ...envConfig.git, syncInterval }
+    }
+  }
+
+  if (process.env.GIT_AUTO_PUSH !== undefined) {
+    const autoPush = process.env.GIT_AUTO_PUSH.toLowerCase() === 'true'
+    envConfig.git = { ...envConfig.git, autoPush }
+  }
+
+  if (process.env.GIT_CONFLICT_STRATEGY) {
+    const strategy = process.env.GIT_CONFLICT_STRATEGY as 'rebase' | 'merge' | 'branch'
+    const validStrategies = ['rebase', 'merge', 'branch']
+    if (validStrategies.includes(strategy)) {
+      envConfig.git = { ...envConfig.git, conflictStrategy: strategy }
+    }
+  }
+
   return envConfig
 }
 
@@ -192,6 +226,18 @@ export async function loadConfig(): Promise<WikiConfig> {
   cachedConfig = config
 
   return config
+}
+
+/**
+ * Get the cached configuration (synchronous)
+ * Must be called after loadConfig() has been called at least once
+ * @throws Error if config hasn't been loaded yet
+ */
+export function getConfig(): WikiConfig {
+  if (!cachedConfig) {
+    throw new Error('Config not loaded. Call loadConfig() first.')
+  }
+  return cachedConfig
 }
 
 /**

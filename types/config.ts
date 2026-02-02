@@ -107,6 +107,46 @@ export interface WikiConfig {
      */
     cacheDuration: number
   }
+
+  /**
+   * Git auto-sync configuration
+   */
+  git?: {
+    /**
+     * Enable git auto-sync
+     * @default false
+     */
+    enabled: boolean
+    /**
+     * Sync interval in minutes
+     * @default 5
+     */
+    syncInterval: number
+    /**
+     * Auto-commit changes
+     * @default true
+     */
+    autoCommit: boolean
+    /**
+     * Auto-push after commit
+     * @default true
+     */
+    autoPush: boolean
+    /**
+     * Commit message template ({timestamp} will be replaced)
+     * @default 'Auto-commit: {timestamp}'
+     */
+    commitMessageTemplate: string
+    /**
+     * Conflict resolution strategy
+     * @default 'rebase'
+     */
+    conflictStrategy: 'rebase' | 'merge' | 'branch'
+    /**
+     * Optional target branch
+     */
+    branch?: string
+  }
 }
 
 export type PartialWikiConfig = Partial<WikiConfig>

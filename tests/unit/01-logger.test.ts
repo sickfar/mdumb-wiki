@@ -6,6 +6,11 @@ describe('Logger', () => {
   const originalEnv = { ...process.env }
 
   beforeEach(() => {
+    // Ensure NODE_ENV is not 'development' to avoid pino-pretty wrapper
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev') {
+      process.env.NODE_ENV = 'test'
+    }
+
     // Clear caches before each test
     clearLoggerCache()
     clearConfigCache()

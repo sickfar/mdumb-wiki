@@ -382,4 +382,129 @@ describe('Config System', () => {
       expect(config.description).toBe('A test wiki description')
     })
   })
+
+  describe('Git Configuration', () => {
+    beforeEach(() => {
+      delete process.env.GIT_ENABLED
+      delete process.env.GIT_SYNC_INTERVAL
+      delete process.env.GIT_AUTO_PUSH
+      delete process.env.GIT_CONFLICT_STRATEGY
+      clearConfigCache()
+    })
+
+    it('should load default git configuration', async () => {
+      const config = await loadConfig()
+
+      expect(config.git).toBeDefined()
+      expect(config.git?.enabled).toBe(false) // Disabled by default
+      expect(config.git?.syncInterval).toBe(5) // 5 minutes
+      expect(config.git?.autoCommit).toBe(true)
+      expect(config.git?.autoPush).toBe(true)
+      expect(config.git?.commitMessageTemplate).toBe('Auto-commit: {timestamp}')
+      expect(config.git?.conflictStrategy).toBe('rebase')
+    })
+
+    it('should override git config from file', async () => {
+      const fileConfig = {
+        git: {
+          enabled: true,
+          syncInterval: 10,
+          autoPush: false,
+          conflictStrategy: 'merge' as const
+        }
+      }
+
+      writeFileSync(testConfigPath, JSON.stringify(fileConfig, null, 2))
+      process.env.WIKI_CONFIG_PATH = testConfigPath
+
+      const config = await loadConfig()
+
+      expect(config.git?.enabled).toBe(true)
+      expect(config.git?.syncInterval).toBe(10)
+      expect(config.git?.autoPush).toBe(false)
+      expect(config.git?.conflictStrategy).toBe('merge')
+      // Other defaults should remain
+      expect(config.git?.autoCommit).toBe(true)
+    })
+
+    it('should override git config from environment variables', async () => {
+      process.env.GIT_ENABLED = 'true'
+      process.env.GIT_SYNC_INTERVAL = '15'
+      process.env.GIT_AUTO_PUSH = 'false'
+      process.env.GIT_CONFLICT_STRATEGY = 'branch'
+
+      const config = await loadConfig()
+
+      expect(config.git?.enabled).toBe(true)
+      expect(config.git?.syncInterval).toBe(15)
+      expect(config.git?.autoPush).toBe(false)
+      expect(config.git?.conflictStrategy).toBe('branch')
+    })
+
+    it('should prioritize ENV over file for git config', async () => {
+      const fileConfig = {
+        git: {
+          enabled: false,
+          syncInterval: 10
+        }
+      }
+
+      writeFileSync(testConfigPath, JSON.stringify(fileConfig, null, 2))
+      process.env.WIKI_CONFIG_PATH = testConfigPath
+      process.env.GIT_ENABLED = 'true'
+      process.env.GIT_SYNC_INTERVAL = '20'
+
+      const config = await loadConfig()
+
+      expect(config.git?.enabled).toBe(true) // ENV wins
+      expect(config.git?.syncInterval).toBe(20) // ENV wins
+    })
+
+    it('should handle invalid git sync interval gracefully', async () => {
+      process.env.GIT_SYNC_INTERVAL = 'invalid'
+
+      const config = await loadConfig()
+
+      expect(config.git?.syncInterval).toBe(5) // Falls back to default
+    })
+
+    it('should handle invalid conflict strategy gracefully', async () => {
+      process.env.GIT_CONFLICT_STRATEGY = 'invalid-strategy'
+
+      const config = await loadConfig()
+
+      expect(config.git?.conflictStrategy).toBe('rebase') // Falls back to default
+    })
+
+    it('should handle GIT_ENABLED=false correctly', async () => {
+      process.env.GIT_ENABLED = 'false'
+
+      const config = await loadConfig()
+
+      expect(config.git?.enabled).toBe(false)
+    })
+
+    it('should support partial git config overrides', async () => {
+      const fileConfig = {
+        git: {
+          enabled: true,
+          syncInterval: 3
+        }
+      }
+
+      writeFileSync(testConfigPath, JSON.stringify(fileConfig, null, 2))
+      process.env.WIKI_CONFIG_PATH = testConfigPath
+
+      const config = await loadConfig()
+
+      // Overridden values
+      expect(config.git?.enabled).toBe(true)
+      expect(config.git?.syncInterval).toBe(3)
+      // Default values preserved
+      expect(config.git?.autoCommit).toBe(true)
+      expect(config.git?.autoPush).toBe(true)
+      expect(config.git?.commitMessageTemplate).toBe('Auto-commit: {timestamp}')
+      expect(config.git?.conflictStrategy).toBe('rebase')
+    })
+  })
 })

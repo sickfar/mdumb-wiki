@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { fileWatcher } from '../../server/utils/file-watcher'
 
 describe('Events SSE Endpoint', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     // Ensure file watcher is stopped before each test
-    fileWatcher.stop()
+    await fileWatcher.stop()
   })
 
-  afterEach(() => {
-    fileWatcher.stop()
+  afterEach(async () => {
+    await fileWatcher.stop()
     vi.clearAllMocks()
   })
 

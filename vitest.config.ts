@@ -8,6 +8,15 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     testTimeout: 10000, // 10 seconds for regular tests
     hookTimeout: 30000, // 30 seconds for beforeAll/afterAll hooks (needed for Nuxt e2e cleanup)
+    pool: 'forks', // Use forks for process isolation
+    poolOptions: {
+      forks: {
+        singleFork: false // Each test file gets its own fork process
+      }
+    },
+    fileParallelism: false, // Run test files one at a time
+    mockReset: true, // Reset mocks between tests
+    restoreMocks: true, // Restore original implementations after tests
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

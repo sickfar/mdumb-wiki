@@ -47,7 +47,7 @@ export function useLiveReload() {
       })
 
       eventSource.value.addEventListener('file:created', (e) => {
-        const data = JSON.parse(e.data)
+        const _data = JSON.parse(e.data)
         // Could update navigation here
       })
 
@@ -86,7 +86,7 @@ export function useLiveReload() {
     // Extract path from file system path
     // E.g., /wiki/guides/installation.md -> /guides/installation
     // Or: wiki/test-index.md -> /test-index
-    let normalizedPath = filePath
+    const normalizedPath = filePath
       .replace(/^\.?\/?(wiki\/)?/, '/') // Remove leading ./ or wiki/ or /wiki/
       .replace(/\.md$/, '') // Remove .md extension
 
@@ -115,7 +115,7 @@ export function useLiveReload() {
   // Connect on mount (client-side only), disconnect on unmount
   onMounted(() => {
     // Only connect on client side (not during SSR)
-    if (process.client) {
+    if (import.meta.client) {
       connect()
     }
   })
