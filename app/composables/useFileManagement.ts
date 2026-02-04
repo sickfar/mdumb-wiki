@@ -96,9 +96,39 @@ export function useFileManagement() {
     }
   }
 
+  /**
+   * Delete a file or folder
+   */
+  const deleteFile = async (path: string): Promise<OperationResult> => {
+    try {
+      const result = await $fetch<{ success: boolean }>('/api/file', {
+        method: 'DELETE',
+        query: {
+          path
+        }
+      })
+
+      if (result.success) {
+        return { success: true, error: null }
+      }
+
+      return {
+        success: false,
+        error: 'Failed to delete file or folder'
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      return {
+        success: false,
+        error: `Failed to delete: ${errorMessage}`
+      }
+    }
+  }
+
   return {
     createFile,
     createFolder,
-    promoteToFolder
+    promoteToFolder,
+    deleteFile
   }
 }

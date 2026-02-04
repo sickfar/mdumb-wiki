@@ -17,7 +17,11 @@ const globalEditorState = {
   hasConflict: ref(false),
   isLoading: ref(false),
   error: ref<string | null>(null),
-  currentPath: ref<string | null>(null)
+  currentPath: ref<string | null>(null),
+  hasDraft: ref(false),
+  draftContent: ref(''),
+  draftTimestamp: ref(0),
+  draftSavedAt: ref<Date | null>(null)
 }
 
 export function useEditor() {
@@ -30,7 +34,11 @@ export function useEditor() {
     hasConflict,
     isLoading,
     error,
-    currentPath
+    currentPath,
+    hasDraft,
+    draftContent,
+    draftTimestamp,
+    draftSavedAt
   } = globalEditorState
 
   // Computed: has unsaved changes (compare with original)
@@ -66,6 +74,9 @@ export function useEditor() {
         originalHash.value = null
       }
 
+      // Check for draft after loading file
+      checkForDraft(path)
+
       isLoading.value = false
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'
@@ -97,6 +108,13 @@ export function useEditor() {
         originalHash.value = result.newHash || null
         originalContent.value = content.value // Update original to match current (no longer dirty)
         lastSaved.value = new Date()
+
+        // Clear draft after successful save
+        clearDraft(path)
+        hasDraft.value = false
+        draftContent.value = ''
+        draftTimestamp.value = 0
+
         isSaving.value = false
         return true
       } else if (result.conflict?.conflictDetected) {
@@ -129,6 +147,7 @@ export function useEditor() {
 
     try {
       localStorage.setItem(`draft-${path}`, JSON.stringify(draft))
+      draftSavedAt.value = new Date()
     } catch (err) {
       console.error('[Editor] Failed to save draft:', err)
     }
@@ -148,18 +167,50 @@ export function useEditor() {
   })
 
   /**
-   * Restore draft from localStorage
+   * Check for existing draft in localStorage
    */
-  const restoreFromDraft = (path: string) => {
+  const checkForDraft = (path: string) => {
     try {
       const draftJson = localStorage.getItem(`draft-${path}`)
       if (draftJson) {
         const draft: Draft = JSON.parse(draftJson)
-        content.value = draft.content
+        const age = Date.now() - draft.savedAt
+
+        // Only show drafts less than 24 hours old
+        if (age < 24 * 60 * 60 * 1000) {
+          hasDraft.value = true
+          draftContent.value = draft.content
+          draftTimestamp.value = draft.savedAt
+        } else {
+          // Clean up old drafts
+          clearDraft(path)
+        }
       }
     } catch (err) {
-      console.error('[Editor] Failed to restore draft:', err)
+      console.error('[Editor] Failed to check for draft:', err)
     }
+  }
+
+  /**
+   * Restore draft from localStorage
+   */
+  const restoreFromDraft = () => {
+    if (draftContent.value) {
+      content.value = draftContent.value
+      hasDraft.value = false
+      draftContent.value = ''
+      draftTimestamp.value = 0
+    }
+  }
+
+  /**
+   * Reject draft and clear from localStorage
+   */
+  const rejectDraft = (path: string) => {
+    clearDraft(path)
+    hasDraft.value = false
+    draftContent.value = ''
+    draftTimestamp.value = 0
   }
 
   /**
@@ -218,6 +269,10 @@ export function useEditor() {
     isLoading.value = false
     error.value = null
     currentPath.value = null
+    hasDraft.value = false
+    draftContent.value = ''
+    draftTimestamp.value = 0
+    draftSavedAt.value = null
     pause()
   }
 
@@ -231,11 +286,16 @@ export function useEditor() {
     isLoading,
     error,
     isDirty,
+    hasDraft,
+    draftContent,
+    draftTimestamp,
+    draftSavedAt,
 
     // Actions
     load,
     save,
     restoreFromDraft,
+    rejectDraft,
     clearDraft,
     reset
   }

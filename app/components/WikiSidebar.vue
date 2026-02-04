@@ -8,6 +8,17 @@ defineProps<{
 const search = useSearch()
 const theme = useTheme()
 const { isOpen } = useMobileSidebar()
+const modals = useModals()
+const selection = useSelection()
+
+// Handle create file/folder - use selected item's context
+const handleCreateFile = () => {
+  modals.openCreateFile(selection.getCreatePath())
+}
+
+const handleCreateFolder = () => {
+  modals.openCreateFolder(selection.getCreatePath())
+}
 </script>
 
 <template>
@@ -31,6 +42,16 @@ const { isOpen } = useMobileSidebar()
         <span class="search-text">Search</span>
         <kbd class="search-kbd">/</kbd>
       </button>
+      <div class="action-buttons">
+        <button class="action-button" title="New File" @click="handleCreateFile">
+          <span class="action-icon">📄</span>
+          <span class="action-text">New File</span>
+        </button>
+        <button class="action-button" title="New Folder" @click="handleCreateFolder">
+          <span class="action-icon">📁</span>
+          <span class="action-text">New Folder</span>
+        </button>
+      </div>
     </div>
     <nav class="wiki-nav">
       <WikiNavItem
@@ -145,6 +166,43 @@ const { isOpen } = useMobileSidebar()
   border-radius: 3px;
   border: 1px solid var(--color-border-secondary);
   transition: all 0.15s;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.625rem 0.5rem;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+
+.action-button:hover {
+  border-color: var(--color-accent);
+  background: var(--color-bg-tertiary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.action-icon {
+  font-size: 1.25rem;
+}
+
+.action-text {
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .wiki-nav {

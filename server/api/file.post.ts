@@ -3,6 +3,7 @@ import { getConfig } from '../utils/config'
 import { getLogger } from '../utils/logger'
 import { writeWikiFile } from '../utils/file-operations'
 import { invalidateCache } from '../utils/markdown-cache'
+import { sendSSEMessage } from '../utils/sse'
 
 export default defineEventHandler(async (event) => {
   const logger = await getLogger()
@@ -60,6 +61,12 @@ export default defineEventHandler(async (event) => {
     // Cache key is the path without .md extension (e.g., "test-links" not "test-links.md")
     const cacheKey = requestedPath.replace(/\.md$/, '')
     invalidateCache(cacheKey)
+
+    // Emit SSE event for navigation refresh
+    sendSSEMessage({
+      type: 'file:created',
+      path: requestedPath
+    })
 
     return result
   } catch (error: unknown) {

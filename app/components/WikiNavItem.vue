@@ -7,7 +7,11 @@ const props = defineProps<{
 }>()
 
 const route = useRoute()
+const router = useRouter()
 const isOpen = ref(false)
+const modals = useModals()
+const { promoteToFolder } = useFileManagement()
+const selection = useSelection()
 
 // Context menu state
 const showContextMenu = ref(false)
@@ -45,39 +49,77 @@ const handleContextMenu = (e: MouseEvent) => {
   showContextMenu.value = true
 }
 
+// Check if item is a folder (has children property, even if empty)
+const isFolder = computed(() => props.item.children !== undefined)
+
+// Handle item selection (for create file/folder buttons)
+const handleSelect = () => {
+  selection.select({
+    slug: props.item.slug,
+    title: props.item.title,
+    isFolder: isFolder.value
+  })
+}
+
 // Context menu items
 const contextMenuItems = computed<ContextMenuItem[]>(() => {
-  const hasChildren = props.item.children && props.item.children.length > 0
 
-  if (hasChildren) {
+  if (isFolder.value) {
     // Folder items
     return [
       { label: 'Edit', icon: '✏️', action: 'edit' },
-      { label: 'Add Subpage', icon: '➕', action: 'add-subpage' }
+      { label: 'Add Subpage', icon: '➕', action: 'add-subpage' },
+      { label: 'Delete', icon: '🗑️', action: 'delete' }
     ]
   } else {
     // File items
     return [
       { label: 'Edit', icon: '✏️', action: 'edit' },
-      { label: 'Promote to Folder', icon: '📁', action: 'promote' }
+      { label: 'Promote to Folder', icon: '📁', action: 'promote' },
+      { label: 'Delete', icon: '🗑️', action: 'delete' }
     ]
   }
 })
 
 // Handle context menu actions
-const handleContextAction = (action: string) => {
+const handleContextAction = async (action: string) => {
   switch (action) {
     case 'edit':
       navigateTo(`/edit/${props.item.slug}`)
       break
     case 'add-subpage':
-      // TODO: Open CreateFileModal with currentPath set to this folder
-      console.log('Add subpage to', props.item.slug)
+      // Open CreateFileModal with currentPath set to this folder
+      modals.openCreateFile(props.item.slug)
       break
     case 'promote':
-      // TODO: Implement promote to folder action
-      console.log('Promote to folder', props.item.slug)
+      // Promote file to folder
+      await handlePromote()
       break
+    case 'delete':
+      // Open delete confirmation modal
+      // Only add .md extension for files, not folders
+      modals.openDeleteConfirm({
+        path: isFolder.value ? props.item.slug : `${props.item.slug}.md`,
+        title: props.item.title,
+        isFolder: isFolder.value
+      })
+      break
+  }
+}
+
+// Handle promote to folder action
+const handlePromote = async () => {
+  const result = await promoteToFolder(`${props.item.slug}.md`)
+
+  if (result.success) {
+    // Immediately refresh navigation for instant UI feedback
+    await refreshNuxtData('navigation')
+
+    // Navigate to the new folder's index page
+    router.push(`/${props.item.slug}`)
+  } else {
+    console.error('Failed to promote file:', result.error)
+    // TODO: Show error notification
   }
 }
 
@@ -88,14 +130,15 @@ const closeContextMenu = () => {
 
 <template>
   <div class="nav-item">
-    <!-- Folder with children -->
-    <details v-if="item.children && item.children.length > 0" :open="isOpen" class="nav-folder">
+    <!-- Folder (has children property, even if empty) -->
+    <details v-if="item.children !== undefined" :open="isOpen" class="nav-folder">
       <summary class="nav-folder-title" @contextmenu="handleContextMenu">
         <span class="nav-folder-icon" @click.stop>▶</span>
         <NuxtLink
           :to="`/${item.slug}`"
           class="nav-folder-link"
           :class="{ 'nav-link-active': isActive }"
+          @click="handleSelect"
           @click.stop
         >
           {{ item.title }}
@@ -116,6 +159,7 @@ const closeContextMenu = () => {
       :to="`/${item.slug}`"
       class="nav-link"
       :class="{ 'nav-link-active': isActive }"
+      @click="handleSelect"
       @contextmenu="handleContextMenu"
     >
       {{ item.title }}

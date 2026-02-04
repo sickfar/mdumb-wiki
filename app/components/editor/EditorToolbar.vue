@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const emit = defineEmits<{
   insert: [text: string]
+  insertFrontmatter: []
 }>()
 
 interface ToolbarButton {
@@ -46,6 +47,13 @@ const buttons: ToolbarButton[] = [
     icon: '≡',
     tooltip: 'List (- item)',
     action: () => emit('insert', '- ')
+  },
+  {
+    id: 'frontmatter',
+    label: 'Frontmatter',
+    icon: '📋',
+    tooltip: 'Insert frontmatter template (title, date, tags)',
+    action: () => emit('insertFrontmatter')
   }
 ]
 </script>

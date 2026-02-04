@@ -5,11 +5,17 @@ const props = defineProps<{
   charCount: number
   isDirty: boolean
   lastSaved?: Date | null
+  draftSavedAt?: Date | null
 }>()
 
 const timeAgo = computed(() => {
   if (!props.lastSaved) return null
   return useTimeAgo(props.lastSaved)
+})
+
+const draftTimeAgo = computed(() => {
+  if (!props.draftSavedAt) return null
+  return useTimeAgo(props.draftSavedAt)
 })
 </script>
 
@@ -18,6 +24,7 @@ const timeAgo = computed(() => {
     <div class="footer-left">
       <span class="char-count">{{ charCount }} characters</span>
       <span v-if="isDirty" class="unsaved-badge">Unsaved changes</span>
+      <span v-if="draftSavedAt && isDirty" class="draft-saved">Draft saved: {{ draftTimeAgo }}</span>
     </div>
     <div v-if="lastSaved" class="footer-right">
       <span class="last-saved">Last saved: {{ timeAgo }}</span>
@@ -62,5 +69,11 @@ const timeAgo = computed(() => {
 
 .last-saved {
   font-style: italic;
+}
+
+.draft-saved {
+  font-style: italic;
+  color: var(--color-text-tertiary);
+  font-size: 0.75rem;
 }
 </style>

@@ -5,7 +5,7 @@ import type { StatusResult } from 'simple-git'
 import {
   initGit,
   checkForChanges,
-  getStatus,
+  getGitStatus,
   commitChanges,
   pushChanges,
   handleConflict,
@@ -135,7 +135,7 @@ describe('git-sync', () => {
     })
   })
 
-  describe('getStatus', () => {
+  describe('getGitStatus', () => {
     it('should return complete status with branch and last commit', async () => {
       initGit('/path/to/wiki')
       mockStatus.mockResolvedValue({
@@ -155,7 +155,7 @@ describe('git-sync', () => {
         }
       })
 
-      const status = await getStatus()
+      const status = await getGitStatus()
       expect(status).toEqual({
         enabled: true,
         branch: 'main',
@@ -180,7 +180,7 @@ describe('git-sync', () => {
         latest: { hash: 'abc123' }
       })
 
-      const status = await getStatus()
+      const status = await getGitStatus()
       expect(status.upToDate).toBe(false)
     })
 
@@ -198,7 +198,7 @@ describe('git-sync', () => {
         latest: { hash: 'abc123' }
       })
 
-      const status = await getStatus()
+      const status = await getGitStatus()
       expect(status.upToDate).toBe(false)
     })
 
@@ -206,14 +206,14 @@ describe('git-sync', () => {
       initGit('/path/to/wiki')
       mockStatus.mockRejectedValue(new Error('Git error'))
 
-      const status = await getStatus()
+      const status = await getGitStatus()
       expect(status.enabled).toBe(false)
       expect(status.errors).toHaveLength(1)
       expect(status.errors[0]).toContain('Git error')
     })
 
     it('should return disabled status when git not initialized', async () => {
-      const status = await getStatus()
+      const status = await getGitStatus()
       expect(status.enabled).toBe(false)
       expect(status.errors).toHaveLength(1)
     })

@@ -1,9 +1,14 @@
-import { describe, test, expect, afterAll } from 'vitest'
-import { parseMarkdown, resetParser } from '../../server/utils/markdown'
+import { describe, test, expect, beforeAll, afterAll } from 'vitest'
+import { parseMarkdown, resetParser, getMarkdownParser } from '../../server/utils/markdown'
 
 describe('HTML Sanitization', () => {
   // Don't reset parser between tests - Shiki is expensive to initialize
   // and should be reused as a singleton across all tests in this file
+
+  beforeAll(async () => {
+    // Initialize parser before all tests
+    await getMarkdownParser()
+  })
 
   afterAll(() => {
     // Reset parser only after all tests in this file complete

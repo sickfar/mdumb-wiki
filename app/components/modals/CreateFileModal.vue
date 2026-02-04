@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed, watch } from 'vue'
 import { slugify } from '~/utils/slug'
 
 const props = defineProps<{
@@ -18,12 +19,14 @@ const isCreating = ref(false)
 const error = ref<string | null>(null)
 const fileExists = ref(false)
 
-// Auto-slugify on blur
-const handleBlur = () => {
-  if (filename.value) {
-    sluggedFilename.value = slugify(filename.value)
+// Reactively update slug as user types
+watch(filename, (newName) => {
+  if (newName) {
+    sluggedFilename.value = slugify(newName)
+  } else {
+    sluggedFilename.value = ''
   }
-}
+})
 
 // Validate filename
 const isValid = computed(() => {
@@ -46,13 +49,12 @@ const checkFileExists = async () => {
 
   try {
     const path = previewPath.value
-    await $fetch(`/api/file?path=${encodeURIComponent(path)}`, {
-      method: 'HEAD'
-    })
-    fileExists.value = true
+    const result = await $fetch<{ exists: boolean }>(`/api/file?path=${encodeURIComponent(path)}`)
+    // The API returns { exists: true/false } rather than a 404
+    fileExists.value = result.exists
   } catch (err) {
-    // 404 means file doesn't exist, which is good
-    fileExists.value = (err as { statusCode?: number }).statusCode !== 404
+    // Network or other errors - assume file might exist to be safe
+    fileExists.value = false
   }
 }
 
@@ -118,12 +120,10 @@ watch(() => props.isOpen, (isOpen) => {
           type="text"
           class="form-input"
           placeholder="My New Page"
-          @blur="handleBlur"
-          @keyup.enter="handleBlur"
         >
       </div>
 
-      <div v-if="sluggedFilename" class="form-group">
+      <div class="form-group">
         <label class="form-label">Slug</label>
         <input
           v-model="sluggedFilename"
@@ -133,9 +133,9 @@ watch(() => props.isOpen, (isOpen) => {
         >
       </div>
 
-      <div v-if="previewPath" class="preview-box">
+      <div class="preview-box">
         <div class="preview-label">Will create:</div>
-        <code class="preview-path">{{ previewPath }}</code>
+        <code class="preview-path">{{ previewPath || '(enter a name)' }}</code>
       </div>
 
       <div v-if="fileExists" class="error-message">

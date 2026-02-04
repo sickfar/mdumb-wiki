@@ -117,4 +117,70 @@ describe('useFileManagement', () => {
       expect(result.error).toBe('Failed to promote file: File not found')
     })
   })
+
+  describe('deleteFile', () => {
+    it('should delete file successfully', async () => {
+      const mockResponse = {
+        success: true
+      }
+
+      mockFetch.mockResolvedValueOnce(mockResponse)
+
+      const fileManager = useFileManagement()
+      const result = await fileManager.deleteFile('old-page.md')
+
+      expect(mockFetch).toHaveBeenCalledWith('/api/file', {
+        method: 'DELETE',
+        query: {
+          path: 'old-page.md'
+        }
+      })
+      expect(result.success).toBe(true)
+      expect(result.error).toBeNull()
+    })
+
+    it('should delete folder successfully', async () => {
+      const mockResponse = {
+        success: true
+      }
+
+      mockFetch.mockResolvedValueOnce(mockResponse)
+
+      const fileManager = useFileManagement()
+      const result = await fileManager.deleteFile('old-folder')
+
+      expect(mockFetch).toHaveBeenCalledWith('/api/file', {
+        method: 'DELETE',
+        query: {
+          path: 'old-folder'
+        }
+      })
+      expect(result.success).toBe(true)
+      expect(result.error).toBeNull()
+    })
+
+    it('should handle deleteFile errors', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('File not found'))
+
+      const fileManager = useFileManagement()
+      const result = await fileManager.deleteFile('missing.md')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Failed to delete: File not found')
+    })
+
+    it('should handle server errors', async () => {
+      const mockResponse = {
+        success: false
+      }
+
+      mockFetch.mockResolvedValueOnce(mockResponse)
+
+      const fileManager = useFileManagement()
+      const result = await fileManager.deleteFile('test.md')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Failed to delete file or folder')
+    })
+  })
 })

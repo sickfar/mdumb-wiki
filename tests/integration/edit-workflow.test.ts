@@ -53,6 +53,65 @@ describe('Edit Workflow Integration', () => {
       expect(readResult.hash).toBe(writeResult.newHash)
     })
 
+    it('should not create duplicate file when editing newly created file', () => {
+      // This test verifies the fix for the bug where creating a file in a folder
+      // and then editing it would create two files: "file.md" and "file.md.md"
+      const folderPath = 'my-folder'
+      const fileName = 'new-page.md'
+      const filePath = `${folderPath}/${fileName}`
+      const initialContent = '# New Page\n\nInitial content.'
+      const editedContent = '# New Page\n\nEdited content.'
+
+      // 1. Create the file (simulating CreateFileModal behavior)
+      const createResult = writeWikiFile({
+        path: filePath, // CreateFileModal creates with .md extension
+        content: initialContent,
+        hash: null,
+        contentPath: TEST_DIR
+      })
+
+      expect(createResult.success).toBe(true)
+      const initialHash = createResult.newHash!
+
+      // 2. Simulate navigation to edit page
+      // The app.vue handleFileCreated should strip .md before navigation
+      // So the editor receives path without .md extension
+      const pathWithoutExt = filePath.replace(/\.md$/, '')
+      const editorFilePath = `${pathWithoutExt}.md` // Editor adds .md back
+
+      // 3. Load file in editor (should load the same file, not create new one)
+      const loadResult = readWikiFile(editorFilePath, TEST_DIR)
+      expect(loadResult.exists).toBe(true)
+      expect(loadResult.content).toBe(initialContent)
+
+      // 4. Save edited content
+      const saveResult = writeWikiFile({
+        path: editorFilePath,
+        content: editedContent,
+        hash: initialHash,
+        contentPath: TEST_DIR
+      })
+
+      expect(saveResult.success).toBe(true)
+
+      // 5. CRITICAL: Verify no duplicate file was created
+      const duplicatePath = `${filePath}.md` // This would be "my-folder/new-page.md.md"
+      const duplicateFullPath = join(TEST_DIR, duplicatePath)
+      expect(existsSync(duplicateFullPath)).toBe(false)
+
+      // 6. Verify original file was updated (not replaced)
+      const verifyResult = readWikiFile(filePath, TEST_DIR)
+      expect(verifyResult.exists).toBe(true)
+      expect(verifyResult.content).toBe(editedContent)
+      expect(verifyResult.hash).toBe(saveResult.newHash)
+
+      // 7. Verify only one file exists in the folder
+      const folderFullPath = join(TEST_DIR, folderPath)
+      const filesInFolder = require('fs').readdirSync(folderFullPath)
+      expect(filesInFolder).toHaveLength(1)
+      expect(filesInFolder[0]).toBe(fileName)
+    })
+
     it('should create file with nested path', () => {
       const filePath = 'guides/getting-started.md'
       const content = '# Getting Started\n\nWelcome to the guide.'

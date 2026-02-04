@@ -1,9 +1,72 @@
 <template>
   <div>
     <SearchModal />
+    <CreateFileModal
+      :is-open="modals.createFileOpen.value"
+      :current-path="modals.currentPath.value"
+      @close="handleModalClose"
+      @created="handleFileCreated"
+    />
+    <CreateFolderModal
+      :is-open="modals.createFolderOpen.value"
+      :current-path="modals.currentPath.value"
+      @close="handleModalClose"
+      @created="handleFolderCreated"
+    />
+    <DeleteConfirmModal
+      :is-open="modals.deleteConfirmOpen.value"
+      :target="modals.deleteTarget.value"
+      @close="handleModalClose"
+      @deleted="handleFileDeleted"
+    />
     <NuxtPage />
   </div>
 </template>
+
+<script setup lang="ts">
+const modals = useModals()
+const router = useRouter()
+const route = useRoute()
+
+const handleModalClose = () => {
+  modals.closeAll()
+}
+
+const handleFileCreated = async (path: string) => {
+  // Immediately refresh navigation for instant UI feedback
+  await refreshNuxtData('navigation')
+
+  // Navigate to edit page for the newly created file
+  // Remove .md extension since the edit page expects slug without extension
+  const pathWithoutExt = path.replace(/\.md$/, '')
+  router.push(`/edit/${pathWithoutExt}`)
+  modals.closeAll()
+}
+
+const handleFolderCreated = async (path: string) => {
+  // Immediately refresh navigation for instant UI feedback
+  await refreshNuxtData('navigation')
+
+  // Navigate to the folder's index page
+  router.push(`/${path}`)
+  modals.closeAll()
+}
+
+const handleFileDeleted = async (deletedPath: string) => {
+  // Immediately refresh navigation for instant UI feedback
+  await refreshNuxtData('navigation')
+
+  // Check if we're currently viewing the deleted file
+  const currentPath = route.path.replace(/^\//, '').replace(/^edit\//, '')
+
+  if (currentPath === deletedPath || currentPath.startsWith(deletedPath + '/')) {
+    // Redirect to home if we deleted the current page or its parent folder
+    router.push('/')
+  }
+
+  modals.closeAll()
+}
+</script>
 
 <style>
 /* Global styles */

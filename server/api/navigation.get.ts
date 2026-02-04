@@ -2,7 +2,7 @@ import { buildNavigation } from '../utils/navigation'
 import { loadConfig } from '../utils/config'
 import { getLogger } from '../utils/logger'
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   const logger = await getLogger()
 
   try {
@@ -10,6 +10,12 @@ export default defineEventHandler(async () => {
     const navigation = buildNavigation(config.contentPath)
 
     logger.info(`Navigation built successfully with ${navigation.length} top-level items`)
+
+    // Set cache control headers: allow caching but force revalidation on page refresh
+    setResponseHeaders(event, {
+      'Cache-Control': 'no-cache, must-revalidate',
+      'Pragma': 'no-cache'
+    })
 
     return navigation
   } catch (error) {

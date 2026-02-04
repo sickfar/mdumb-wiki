@@ -84,9 +84,10 @@ export function buildNavigation(
 
     // Check if folder has an index.md
     const indexPath = path.join(folderFullPath, 'index.md')
+    const hasIndex = fs.existsSync(indexPath)
     let title = folder.name
 
-    if (fs.existsSync(indexPath)) {
+    if (hasIndex) {
       // Extract title from index.md front matter
       try {
         const indexContent = fs.readFileSync(indexPath, 'utf-8')
@@ -103,18 +104,17 @@ export function buildNavigation(
     // Recursively build navigation for children
     const children = buildNavigation(rootPath, folderPath, 0)
 
-    // Only add folder if it has children (files or subfolders)
-    if (children.length > 0) {
-      const slug = folderPath.replace(/\\/g, '/')
+    // Always show folders in navigation, even without index.md
+    // This allows users to see and access folders without index pages
+    const slug = folderPath.replace(/\\/g, '/')
 
-      navigationItems.push({
-        title,
-        slug,
-        order: currentOrder++,
-        path: folderPath.replace(/\\/g, '/'),
-        children
-      })
-    }
+    navigationItems.push({
+      title,
+      slug,
+      order: currentOrder++,
+      path: folderPath.replace(/\\/g, '/'),
+      children
+    })
   }
 
   // Process files

@@ -33,6 +33,10 @@ describe('useEditor', () => {
     // Dynamic import to reset module state
     const module = await import('../../../app/composables/useEditor')
     useEditor = module.useEditor
+
+    // Reset editor state between tests
+    const editor = useEditor()
+    editor.reset()
   })
 
   afterEach(() => {
@@ -192,9 +196,9 @@ describe('useEditor', () => {
       const editor = useEditor()
       editor.content.value = '# Draft Content'
 
-      // Manually call the debounced function
+      // Manually call the debounced function with path
       if (debouncedFn) {
-        debouncedFn()
+        debouncedFn('test.md')
       }
 
       await nextTick()
@@ -206,18 +210,17 @@ describe('useEditor', () => {
     })
 
     it('should restore from draft', async () => {
-      const draft = {
-        content: '# Restored Draft',
-        savedAt: Date.now()
-      }
-
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(draft))
-
       const editor = useEditor()
-      editor.restoreFromDraft('test.md')
 
-      expect(localStorageMock.getItem).toHaveBeenCalledWith('draft-test.md')
+      // Simulate having a draft in state (set by checkForDraft during load)
+      editor.draftContent.value = '# Restored Draft'
+      editor.hasDraft.value = true
+
+      editor.restoreFromDraft()
+
       expect(editor.content.value).toBe('# Restored Draft')
+      expect(editor.hasDraft.value).toBe(false)
+      expect(editor.draftContent.value).toBe('')
     })
 
     it('should clear draft', () => {
@@ -225,6 +228,115 @@ describe('useEditor', () => {
       editor.clearDraft('test.md')
 
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('draft-test.md')
+    })
+
+    it('should detect existing draft on load', async () => {
+      const draft = {
+        content: '# Draft Content',
+        savedAt: Date.now() - 60000 // 1 minute ago
+      }
+
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(draft))
+
+      const mockResponse: FileReadResult = {
+        exists: true,
+        path: 'test.md',
+        content: '# Original Content',
+        hash: 'abc123'
+      }
+
+      mockFetch.mockResolvedValueOnce(mockResponse)
+
+      const editor = useEditor()
+      await editor.load('test.md')
+
+      expect(editor.hasDraft.value).toBe(true)
+      expect(editor.draftContent.value).toBe('# Draft Content')
+      expect(editor.draftTimestamp.value).toBe(draft.savedAt)
+    })
+
+    it('should ignore drafts older than 24 hours', async () => {
+      const oldDraft = {
+        content: '# Old Draft',
+        savedAt: Date.now() - (25 * 60 * 60 * 1000) // 25 hours ago
+      }
+
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(oldDraft))
+
+      const mockResponse: FileReadResult = {
+        exists: true,
+        path: 'test.md',
+        content: '# Original Content',
+        hash: 'abc123'
+      }
+
+      mockFetch.mockResolvedValueOnce(mockResponse)
+
+      const editor = useEditor()
+      await editor.load('test.md')
+
+      expect(editor.hasDraft.value).toBe(false)
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('draft-test.md')
+    })
+
+    it('should reject draft and clear storage', () => {
+      const editor = useEditor()
+      editor.hasDraft.value = true
+      editor.draftContent.value = '# Draft'
+      editor.draftTimestamp.value = Date.now()
+
+      editor.rejectDraft('test.md')
+
+      expect(editor.hasDraft.value).toBe(false)
+      expect(editor.draftContent.value).toBe('')
+      expect(editor.draftTimestamp.value).toBe(0)
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('draft-test.md')
+    })
+
+    it('should clear draft after successful save', async () => {
+      const mockResponse: FileWriteResult = {
+        success: true,
+        newHash: 'new-hash'
+      }
+
+      mockFetch.mockResolvedValueOnce(mockResponse)
+
+      const editor = useEditor()
+      editor.content.value = '# Content'
+      editor.originalHash.value = 'old-hash'
+      editor.hasDraft.value = true
+      editor.draftContent.value = '# Draft'
+
+      await editor.save('test.md')
+
+      expect(editor.hasDraft.value).toBe(false)
+      expect(editor.draftContent.value).toBe('')
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('draft-test.md')
+    })
+
+    it('should update draftSavedAt timestamp when saving draft', async () => {
+      let debouncedFn: Function | null = null
+      mockUseDebounceFn.mockImplementation((fn) => {
+        debouncedFn = fn
+        return fn
+      })
+
+      const beforeTimestamp = Date.now()
+
+      const editor = useEditor()
+      editor.content.value = '# Draft Content'
+
+      if (debouncedFn) {
+        debouncedFn('test.md')
+      }
+
+      await nextTick()
+
+      const afterTimestamp = Date.now()
+
+      expect(editor.draftSavedAt.value).not.toBeNull()
+      expect(editor.draftSavedAt.value!.getTime()).toBeGreaterThanOrEqual(beforeTimestamp)
+      expect(editor.draftSavedAt.value!.getTime()).toBeLessThanOrEqual(afterTimestamp)
     })
   })
 

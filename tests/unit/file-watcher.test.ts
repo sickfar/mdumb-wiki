@@ -1,6 +1,15 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { promises as fs } from 'node:fs'
 import { join } from 'node:path'
+
+// Mock markdown-cache to avoid config dependency
+vi.mock('../../server/utils/markdown-cache', () => ({
+  invalidateCache: vi.fn(),
+  clearCache: vi.fn(),
+  getFromCache: vi.fn(),
+  setInCache: vi.fn()
+}))
+
 import { fileWatcher } from '../../server/utils/file-watcher'
 
 describe('FileWatcher', () => {

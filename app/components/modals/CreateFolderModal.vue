@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed, watch } from 'vue'
 import { slugify } from '~/utils/slug'
 
 const props = defineProps<{
@@ -18,12 +19,14 @@ const isCreating = ref(false)
 const error = ref<string | null>(null)
 const folderExists = ref(false)
 
-// Auto-slugify on blur
-const handleBlur = () => {
-  if (folderName.value) {
-    sluggedFolderName.value = slugify(folderName.value)
+// Reactively update slug as user types
+watch(folderName, (newName) => {
+  if (newName) {
+    sluggedFolderName.value = slugify(newName)
+  } else {
+    sluggedFolderName.value = ''
   }
-}
+})
 
 // Validate folder name
 const isValid = computed(() => {
@@ -46,13 +49,12 @@ const checkFolderExists = async () => {
 
   try {
     const path = previewPath.value
-    await $fetch(`/api/file?path=${encodeURIComponent(path)}`, {
-      method: 'HEAD'
-    })
-    folderExists.value = true
+    const result = await $fetch<{ exists: boolean }>(`/api/file?path=${encodeURIComponent(path)}`)
+    // The API returns { exists: true/false } rather than a 404
+    folderExists.value = result.exists
   } catch (err) {
-    // 404 means folder doesn't exist, which is good
-    folderExists.value = (err as { statusCode?: number }).statusCode !== 404
+    // Network or other errors - assume folder might exist to be safe
+    folderExists.value = false
   }
 }
 
@@ -128,12 +130,10 @@ watch(() => props.isOpen, (isOpen) => {
           type="text"
           class="form-input"
           placeholder="My New Section"
-          @blur="handleBlur"
-          @keyup.enter="handleBlur"
         >
       </div>
 
-      <div v-if="sluggedFolderName" class="form-group">
+      <div class="form-group">
         <label class="form-label">Slug</label>
         <input
           v-model="sluggedFolderName"
@@ -143,9 +143,9 @@ watch(() => props.isOpen, (isOpen) => {
         >
       </div>
 
-      <div v-if="previewPath" class="preview-box">
+      <div class="preview-box">
         <div class="preview-label">Will create:</div>
-        <code class="preview-path">{{ previewPath }}</code>
+        <code class="preview-path">{{ previewPath || '(enter a name)' }}</code>
       </div>
 
       <div v-if="folderExists" class="error-message">

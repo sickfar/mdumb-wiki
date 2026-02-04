@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { validatePath } from '../../utils/security'
 import { parseMarkdown } from '../../utils/markdown'
@@ -50,8 +50,34 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // If no valid file found, return 404
+    // If no valid file found, check if it's a folder
     if (!filePath) {
+      // Check if the path exists as a directory
+      try {
+        const folderPath = validatePath(pathParam, config.contentPath)
+        if (existsSync(folderPath) && statSync(folderPath).isDirectory()) {
+          // It's a folder without index.md - return folder info
+          const files = readdirSync(folderPath)
+            .filter(file => file.endsWith('.md') && file !== 'index.md')
+            .map(file => file.replace(/\.md$/, ''))
+
+          logger.info(`Serving folder stub for: ${pathParam}`)
+
+          // Return a special response indicating it's a folder
+          return {
+            isFolder: true,
+            slug: pathParam,
+            title: pathParam.split('/').pop() || 'Folder',
+            files,
+            html: '', // Empty HTML for folders
+            content: '',
+            frontmatter: {}
+          }
+        }
+      } catch {
+        // Not a valid folder path
+      }
+
       logger.warn(`Content not found for path: ${pathParam}`)
 
       throw createError({

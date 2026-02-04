@@ -6,6 +6,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  insertFrontmatter: []
 }>()
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
@@ -117,7 +118,7 @@ const handleInsert = (text: string) => {
 
 <template>
   <div class="markdown-editor">
-    <EditorToolbar @insert="handleInsert" />
+    <EditorToolbar @insert="handleInsert" @insert-frontmatter="emit('insertFrontmatter')" />
     <textarea
       ref="textareaRef"
       v-model="localValue"

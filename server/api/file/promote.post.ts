@@ -2,6 +2,7 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import { getConfig } from '../../utils/config'
 import { getLogger } from '../../utils/logger'
 import { promoteFileToFolder } from '../../utils/file-operations'
+import { sendSSEMessage } from '../../utils/sse'
 
 export default defineEventHandler(async (event) => {
   const logger = await getLogger()
@@ -40,6 +41,12 @@ export default defineEventHandler(async (event) => {
     }
 
     logger.info({ path: requestedPath, newPath: result.newPath }, 'File promoted successfully')
+
+    // Emit SSE event for navigation refresh
+    sendSSEMessage({
+      type: 'file:changed',
+      path: requestedPath
+    })
 
     return result
   } catch (error: unknown) {

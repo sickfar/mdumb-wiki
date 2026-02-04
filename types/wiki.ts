@@ -67,6 +67,16 @@ export interface WikiPage {
    * Navigation order/weight
    */
   order?: number
+
+  /**
+   * Whether this represents a folder without index.md
+   */
+  isFolder?: boolean
+
+  /**
+   * List of files in the folder (for folder stubs)
+   */
+  files?: string[]
 }
 
 export interface NavigationItem {

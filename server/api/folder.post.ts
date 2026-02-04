@@ -2,6 +2,7 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import { getConfig } from '../utils/config'
 import { getLogger } from '../utils/logger'
 import { createWikiFolder } from '../utils/file-operations'
+import { sendSSEMessage } from '../utils/sse'
 
 export default defineEventHandler(async (event) => {
   const logger = await getLogger()
@@ -42,6 +43,12 @@ export default defineEventHandler(async (event) => {
     }
 
     logger.info({ path: requestedPath, createIndex }, 'Folder created successfully')
+
+    // Emit SSE event for navigation refresh
+    sendSSEMessage({
+      type: 'file:created',
+      path: requestedPath
+    })
 
     return result
   } catch (error: unknown) {

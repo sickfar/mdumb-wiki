@@ -1,4 +1,4 @@
-import { readFileSync, existsSync, writeFileSync, mkdirSync, unlinkSync } from 'fs'
+import { readFileSync, existsSync, writeFileSync, mkdirSync, unlinkSync, readdirSync, statSync, rmdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { validatePath } from './security'
 import { computeContentHash } from './file-hash'
@@ -46,6 +46,16 @@ export interface FilePromoteRequest {
 export interface FilePromoteResult {
   success: boolean
   newPath?: string
+  error?: string
+}
+
+export interface FileDeleteRequest {
+  path: string
+  contentPath: string
+}
+
+export interface FileDeleteResult {
+  success: boolean
   error?: string
 }
 
@@ -216,5 +226,66 @@ export function promoteFileToFolder(request: FilePromoteRequest): FilePromoteRes
   return {
     success: true,
     newPath
+  }
+}
+
+/**
+ * Recursively delete a directory and all its contents
+ * @param dirPath - Absolute path to directory
+ */
+function deleteFolderRecursive(dirPath: string): void {
+  if (existsSync(dirPath)) {
+    readdirSync(dirPath).forEach((file) => {
+      const filePath = join(dirPath, file)
+      if (statSync(filePath).isDirectory()) {
+        // Recursive deletion
+        deleteFolderRecursive(filePath)
+      } else {
+        // Delete file
+        unlinkSync(filePath)
+      }
+    })
+    // Delete empty directory
+    rmdirSync(dirPath)
+  }
+}
+
+/**
+ * Delete a file or folder from the wiki content directory
+ * @param request - File delete request with path and contentPath
+ * @returns Delete result with success status
+ */
+export function deleteWikiFile(request: FileDeleteRequest): FileDeleteResult {
+  const { path: requestedPath, contentPath } = request
+
+  // CRITICAL: Validate path before any file operation
+  const safePath = validatePath(requestedPath, contentPath)
+
+  // Check if file/folder exists
+  if (!existsSync(safePath)) {
+    return {
+      success: false,
+      error: 'File or folder does not exist'
+    }
+  }
+
+  try {
+    // Check if it's a directory
+    if (statSync(safePath).isDirectory()) {
+      // Recursively delete folder and contents
+      deleteFolderRecursive(safePath)
+    } else {
+      // Delete single file
+      unlinkSync(safePath)
+    }
+
+    return {
+      success: true
+    }
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Failed to delete'
+    }
   }
 }

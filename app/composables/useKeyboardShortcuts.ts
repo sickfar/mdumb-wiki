@@ -4,7 +4,8 @@ import type { useMobileSidebar } from './useMobileSidebar'
 
 export function useKeyboardShortcuts(
   search: ReturnType<typeof useSearch>,
-  sidebar?: ReturnType<typeof useMobileSidebar>
+  sidebar?: ReturnType<typeof useMobileSidebar>,
+  onSave?: () => void | Promise<void>
 ) {
   const sidebarInstance = sidebar
 
@@ -12,6 +13,13 @@ export function useKeyboardShortcuts(
     const target = e.target as HTMLElement
     const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
     const _isSearchInput = target.classList.contains('search-input')
+
+    // "Ctrl+S" / "Cmd+S" saves the file
+    if ((e.ctrlKey || e.metaKey) && e.key === 's' && onSave) {
+      e.preventDefault()
+      onSave()
+      return
+    }
 
     // "/" opens search (unless typing in an input that's NOT the search)
     if (e.key === '/' && !search.isOpen.value && !isTyping) {

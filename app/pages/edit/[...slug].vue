@@ -44,6 +44,45 @@ const cancel = () => {
   editor.reset()
   router.back()
 }
+
+// Keyboard shortcuts (including Ctrl+S)
+const search = useSearch()
+useKeyboardShortcuts(search, undefined, save)
+
+// Draft restoration handlers
+const handleRestoreDraft = () => {
+  editor.restoreFromDraft()
+}
+
+const handleRejectDraft = () => {
+  editor.rejectDraft(filePath.value)
+}
+
+// Insert frontmatter template
+const insertFrontmatter = () => {
+  const currentContent = editor.content.value
+
+  // Check if frontmatter already exists
+  if (currentContent.trim().startsWith('---')) {
+    // Already has frontmatter, don't insert
+    return
+  }
+
+  // Get the page title from the slug
+  const title = slug.value.split('/').pop()?.replace(/-/g, ' ') || 'Untitled'
+  const today = new Date().toISOString().split('T')[0]
+
+  const frontmatterTemplate = `---
+title: ${title}
+date: ${today}
+tags: []
+---
+
+`
+
+  // Insert frontmatter at the beginning
+  editor.content.value = frontmatterTemplate + currentContent
+}
 </script>
 
 <template>
@@ -63,11 +102,16 @@ const cancel = () => {
     <div v-else class="editor-layout">
       <!-- Editor pane -->
       <div class="editor-pane">
-        <MarkdownEditor v-model="editor.content.value" :disabled="editor.isSaving.value" />
+        <MarkdownEditor
+          v-model="editor.content.value"
+          :disabled="editor.isSaving.value"
+          @insert-frontmatter="insertFrontmatter"
+        />
         <EditorFooter
           :char-count="editor.content.value.length"
           :is-dirty="editor.isDirty.value"
           :last-saved="editor.lastSaved.value"
+          :draft-saved-at="editor.draftSavedAt.value"
         />
         <EditorActions
           :is-saving="editor.isSaving.value"
@@ -82,6 +126,16 @@ const cancel = () => {
         <MarkdownPreview :html="previewHtml" />
       </div>
     </div>
+
+    <!-- Draft restoration modal -->
+    <DraftRestorationModal
+      v-if="editor.hasDraft.value"
+      :is-open="editor.hasDraft.value"
+      :draft-content="editor.draftContent.value"
+      :draft-timestamp="editor.draftTimestamp.value"
+      @restore="handleRestoreDraft"
+      @reject="handleRejectDraft"
+    />
 
     <!-- Conflict resolution modal -->
     <ConflictResolutionModal
