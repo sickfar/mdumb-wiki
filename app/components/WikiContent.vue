@@ -1,18 +1,28 @@
 <script setup lang="ts">
 import type { WikiPage } from '../../types/wiki'
 
-defineProps<{
+const props = defineProps<{
   page: WikiPage
 }>()
+
+const route = useRoute()
+const editPath = computed(() => `/edit${route.path}`)
 </script>
 
 <template>
   <article class="wiki-content">
     <header class="wiki-header">
-      <h1 class="wiki-title">{{ page.title }}</h1>
-      <p v-if="page.description" class="wiki-description">
-        {{ page.description }}
-      </p>
+      <div class="header-content">
+        <div>
+          <h1 class="wiki-title">{{ page.title }}</h1>
+          <p v-if="page.description" class="wiki-description">
+            {{ page.description }}
+          </p>
+        </div>
+        <NuxtLink :to="editPath" class="edit-button">
+          ✏️ Edit
+        </NuxtLink>
+      </div>
     </header>
 
     <!-- eslint-disable-next-line vue/no-v-html, vue/html-self-closing -->
@@ -30,6 +40,32 @@ defineProps<{
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-border);
   transition: border-color 0.2s ease;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.edit-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-accent);
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.edit-button:hover {
+  background: var(--color-accent-hover);
 }
 
 .wiki-title {

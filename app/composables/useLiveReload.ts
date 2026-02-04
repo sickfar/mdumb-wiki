@@ -1,23 +1,31 @@
 import { refreshNuxtData } from '#app'
 
 export function useLiveReload() {
+  // Global singleton state for SSR-safe live reload connection
+  const globalEventSource = useState<EventSource | null>('live-reload-connection', () => null)
+  const globalReconnectAttempts = useState<number>('live-reload-reconnect', () => 0)
+  const connectionCount = useState<number>('live-reload-count', () => 0)
+  const lastSaveTimestamp = useState<number>('last-save-timestamp', () => 0)
+
   const showUpdateBanner = ref(false)
-  const eventSource = ref<EventSource | null>(null)
-  const reconnectAttempts = ref(0)
   const maxReconnectAttempts = 5
   const route = useRoute()
+  const SUPPRESS_NOTIFICATION_WINDOW = 3000 // 3 seconds
 
   const connect = () => {
-    if (eventSource.value) {
+    // Prevent multiple connections
+    if (globalEventSource.value) {
+      connectionCount.value++
       return
     }
 
     try {
       const es = new EventSource('/api/events')
-      eventSource.value = es
+      globalEventSource.value = es
+      connectionCount.value = 1
 
       es.addEventListener('connected', () => {
-        reconnectAttempts.value = 0
+        globalReconnectAttempts.value = 0
       })
 
       // Listen for generic messages
@@ -27,7 +35,11 @@ export function useLiveReload() {
 
           if (data.type === 'file:changed' && data.path) {
             if (isCurrentPage(data.path)) {
-              showUpdateBanner.value = true
+              // Suppress notification if it's within the window after a save
+              const timeSinceLastSave = Date.now() - lastSaveTimestamp.value
+              if (timeSinceLastSave > SUPPRESS_NOTIFICATION_WINDOW) {
+                showUpdateBanner.value = true
+              }
             }
           }
 
@@ -46,7 +58,7 @@ export function useLiveReload() {
         }
       }
 
-      eventSource.value.onerror = (error) => {
+      globalEventSource.value.onerror = (error) => {
         console.error('[LiveReload] Connection error:', error)
         disconnect()
         attemptReconnect()
@@ -57,20 +69,23 @@ export function useLiveReload() {
   }
 
   const disconnect = () => {
-    if (eventSource.value) {
-      eventSource.value.close()
-      eventSource.value = null
+    // Only disconnect if this is the last active connection
+    connectionCount.value--
+    if (connectionCount.value <= 0 && globalEventSource.value) {
+      globalEventSource.value.close()
+      globalEventSource.value = null
+      connectionCount.value = 0
     }
   }
 
   const attemptReconnect = () => {
-    if (reconnectAttempts.value >= maxReconnectAttempts) {
+    if (globalReconnectAttempts.value >= maxReconnectAttempts) {
       console.error('[LiveReload] Max reconnection attempts reached')
       return
     }
 
-    reconnectAttempts.value++
-    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.value), 30000)
+    globalReconnectAttempts.value++
+    const delay = Math.min(1000 * Math.pow(2, globalReconnectAttempts.value), 30000)
 
     setTimeout(() => {
       connect()
@@ -107,6 +122,10 @@ export function useLiveReload() {
     showUpdateBanner.value = false
   }
 
+  const markSaved = () => {
+    lastSaveTimestamp.value = Date.now()
+  }
+
   // Connect on mount (client-side only), disconnect on unmount
   onMounted(() => {
     // Only connect on client side (not during SSR)
@@ -123,5 +142,6 @@ export function useLiveReload() {
     showUpdateBanner,
     reload,
     dismiss,
+    markSaved,
   }
 }

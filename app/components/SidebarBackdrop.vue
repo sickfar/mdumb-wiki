@@ -10,7 +10,7 @@
       leave-to-class="opacity-0"
     >
       <div
-        v-if="isOpen"
+        v-if="isOpen && isMobile"
         class="sidebar-backdrop"
         aria-hidden="true"
         @click="close"
@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-const { isOpen, close } = useMobileSidebar()
+const { isOpen, isMobile, close } = useMobileSidebar()
 </script>
 
 <style scoped>

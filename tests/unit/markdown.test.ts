@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { parseMarkdown, getMarkdownParser } from '../../server/utils/markdown'
+import { clearCache } from '../../server/utils/markdown-cache'
 
 describe('Markdown Parser', () => {
   beforeEach(async () => {
+    // Clear markdown cache before each test
+    clearCache()
     // Ensure parser is initialized before each test
     await getMarkdownParser()
   })

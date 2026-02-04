@@ -1,5 +1,6 @@
 import { watch, type FSWatcher } from 'chokidar'
 import { EventEmitter } from 'node:events'
+import { invalidateCache } from './markdown-cache'
 
 export interface FileChangeEvent {
   path: string
@@ -124,6 +125,9 @@ class FileWatcher extends EventEmitter {
         type,
         timestamp: Date.now(),
       }
+
+      // Invalidate markdown cache for the changed file
+      invalidateCache(path)
 
       this.emit(type, event)
       this.debounceTimers.delete(path)

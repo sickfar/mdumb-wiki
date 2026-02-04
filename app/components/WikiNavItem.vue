@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NavigationItem } from '../../types/wiki'
-import { ref } from 'vue'
+import type { ContextMenuItem } from './ContextMenu.vue'
 
 const props = defineProps<{
   item: NavigationItem
@@ -8,6 +8,11 @@ const props = defineProps<{
 
 const route = useRoute()
 const isOpen = ref(false)
+
+// Context menu state
+const showContextMenu = ref(false)
+const contextMenuX = ref(0)
+const contextMenuY = ref(0)
 
 // Determine if this item is active (current page)
 const isActive = computed(() => {
@@ -25,9 +30,59 @@ const hasActiveChild = computed(() => {
   )
 })
 
-// Start expanded if active or has active child
-if (isActive.value || hasActiveChild.value) {
-  isOpen.value = true
+// Start expanded if active or has active child (client-side only to avoid hydration mismatch)
+onMounted(() => {
+  if (isActive.value || hasActiveChild.value) {
+    isOpen.value = true
+  }
+})
+
+// Handle right-click context menu
+const handleContextMenu = (e: MouseEvent) => {
+  e.preventDefault()
+  contextMenuX.value = e.clientX
+  contextMenuY.value = e.clientY
+  showContextMenu.value = true
+}
+
+// Context menu items
+const contextMenuItems = computed<ContextMenuItem[]>(() => {
+  const hasChildren = props.item.children && props.item.children.length > 0
+
+  if (hasChildren) {
+    // Folder items
+    return [
+      { label: 'Edit', icon: '✏️', action: 'edit' },
+      { label: 'Add Subpage', icon: '➕', action: 'add-subpage' }
+    ]
+  } else {
+    // File items
+    return [
+      { label: 'Edit', icon: '✏️', action: 'edit' },
+      { label: 'Promote to Folder', icon: '📁', action: 'promote' }
+    ]
+  }
+})
+
+// Handle context menu actions
+const handleContextAction = (action: string) => {
+  switch (action) {
+    case 'edit':
+      navigateTo(`/edit/${props.item.slug}`)
+      break
+    case 'add-subpage':
+      // TODO: Open CreateFileModal with currentPath set to this folder
+      console.log('Add subpage to', props.item.slug)
+      break
+    case 'promote':
+      // TODO: Implement promote to folder action
+      console.log('Promote to folder', props.item.slug)
+      break
+  }
+}
+
+const closeContextMenu = () => {
+  showContextMenu.value = false
 }
 </script>
 
@@ -35,7 +90,7 @@ if (isActive.value || hasActiveChild.value) {
   <div class="nav-item">
     <!-- Folder with children -->
     <details v-if="item.children && item.children.length > 0" :open="isOpen" class="nav-folder">
-      <summary class="nav-folder-title">
+      <summary class="nav-folder-title" @contextmenu="handleContextMenu">
         <span class="nav-folder-icon" @click.stop>▶</span>
         <NuxtLink
           :to="`/${item.slug}`"
@@ -61,9 +116,20 @@ if (isActive.value || hasActiveChild.value) {
       :to="`/${item.slug}`"
       class="nav-link"
       :class="{ 'nav-link-active': isActive }"
+      @contextmenu="handleContextMenu"
     >
       {{ item.title }}
     </NuxtLink>
+
+    <!-- Context menu -->
+    <ContextMenu
+      :is-open="showContextMenu"
+      :x="contextMenuX"
+      :y="contextMenuY"
+      :items="contextMenuItems"
+      @action="handleContextAction"
+      @close="closeContextMenu"
+    />
   </div>
 </template>
 

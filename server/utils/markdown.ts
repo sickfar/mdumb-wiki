@@ -3,9 +3,10 @@ import Shiki from '@shikijs/markdown-it'
 import { getHighlighter } from 'shiki'
 import matter from 'gray-matter'
 import type { WikiPage, FrontMatter } from '../../types/wiki'
-import { loadConfig } from './config'
+import { loadConfig, getConfig } from './config'
 import { markdownLinkPlugin } from './markdown-link-plugin'
 import { markdownSanitizerPlugin } from './markdown-sanitizer'
+import { getFromCache, setInCache } from './markdown-cache'
 
 /**
  * Singleton markdown parser instance
@@ -105,6 +106,43 @@ export async function parseMarkdown(
   content: string,
   path: string
 ): Promise<WikiPage> {
+  // Check if caching is enabled
+  const config = getConfig()
+  const cacheEnabled = config.cache.markdown.enabled
+
+  // Try to get cached HTML if caching is enabled
+  if (cacheEnabled) {
+    const cachedHtml = getFromCache(path)
+    if (cachedHtml) {
+      // Parse front matter to get metadata
+      let frontMatter: FrontMatter = {}
+      let markdownContent = content
+
+      try {
+        const parsed = matter(content)
+        frontMatter = parsed.data as FrontMatter
+        markdownContent = parsed.content
+      } catch (error) {
+        console.warn('Failed to parse front matter:', error)
+        frontMatter = {}
+        markdownContent = content
+      }
+
+      // Return WikiPage with cached HTML
+      return {
+        slug: path.replace(/\.md$/, '').replace(/^\//, ''),
+        title: frontMatter.title || 'Untitled',
+        description: frontMatter.description,
+        content: markdownContent,
+        html: cachedHtml,
+        frontmatter: frontMatter,
+        path,
+        modifiedAt: new Date(),
+        createdAt: new Date()
+      }
+    }
+  }
+
   // Get the markdown parser (will initialize if needed)
   const md = await getMarkdownParser()
 
@@ -126,6 +164,11 @@ export async function parseMarkdown(
   // Render markdown to HTML with environment context
   const env = { currentPath: path }
   const html = md.render(markdownContent, env)
+
+  // Cache the rendered HTML if caching is enabled
+  if (cacheEnabled) {
+    setInCache(path, html)
+  }
 
   // Extract title from front matter or use default
   const title = frontMatter.title || 'Untitled'

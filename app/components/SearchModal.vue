@@ -56,14 +56,18 @@
 
 <script setup lang="ts">
 const search = useSearch()
-useKeyboardShortcuts(search)
+const sidebar = useMobileSidebar()
+useKeyboardShortcuts(search, sidebar)
 
 const inputRef = ref<HTMLInputElement | null>(null)
 
 watch(() => search.isOpen.value, (isOpen) => {
-  if (isOpen) {
+  if (isOpen && inputRef.value) {
     nextTick(() => {
-      inputRef.value?.focus()
+      // Double-check ref exists after nextTick
+      if (inputRef.value) {
+        inputRef.value.focus()
+      }
     })
   }
 })

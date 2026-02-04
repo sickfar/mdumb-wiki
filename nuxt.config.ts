@@ -9,6 +9,13 @@ export default defineNuxtConfig({
     '@nuxt/test-utils'
   ],
 
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false,
+    }
+  ],
+
   runtimeConfig: {
     public: {
       isDev: process.env.NODE_ENV === 'development'

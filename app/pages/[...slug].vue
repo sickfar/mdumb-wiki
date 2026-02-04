@@ -10,7 +10,15 @@ const { data: navigation, error: navError } = await useFetch<NavigationItem[]>('
 const { data: page, error: pageError } = await useFetch<WikiPage>(`/api/content/${slug}`)
 
 const error = navError.value || pageError.value
-const notFound = pageError.value?.statusCode === 404
+
+// Robust 404 detection - check multiple error structures
+const notFound = computed(() => {
+  const err = pageError.value
+  if (!err) return false
+  return err.statusCode === 404 ||
+         err.data?.statusCode === 404 ||
+         err.status === 404
+})
 
 const { showUpdateBanner, reload, dismiss } = useLiveReload()
 </script>
@@ -21,6 +29,7 @@ const { showUpdateBanner, reload, dismiss } = useLiveReload()
     <BurgerMenu />
     <SidebarBackdrop />
     <WikiSidebar v-if="navigation" :navigation="navigation" />
+    <SkeletonSidebar v-else class="wiki-sidebar" />
     <main class="wiki-main">
       <div v-if="notFound" class="not-found">
         <h1>Page Not Found</h1>
@@ -32,7 +41,7 @@ const { showUpdateBanner, reload, dismiss } = useLiveReload()
         <p>{{ error }}</p>
       </div>
       <WikiContent v-else-if="page" :page="page" />
-      <div v-else class="loading">Loading...</div>
+      <SkeletonContent v-else />
     </main>
   </div>
 </template>
@@ -73,9 +82,5 @@ const { showUpdateBanner, reload, dismiss } = useLiveReload()
   color: #2c5282;
 }
 
-.loading {
-  padding: 2rem;
-  text-align: center;
-  color: #718096;
-}
+/* Sidebar styles are in WikiSidebar.vue component - removed to avoid conflicts */
 </style>

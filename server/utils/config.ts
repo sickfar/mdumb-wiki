@@ -50,6 +50,12 @@ const DEFAULT_CONFIG: WikiConfig = {
     autoPush: true,
     commitMessageTemplate: 'Auto-commit: {timestamp}',
     conflictStrategy: 'rebase'
+  },
+  cache: {
+    markdown: {
+      enabled: true,
+      maxSize: 100
+    }
   }
 }
 

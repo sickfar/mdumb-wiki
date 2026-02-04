@@ -147,6 +147,27 @@ export interface WikiConfig {
      */
     branch?: string
   }
+
+  /**
+   * Cache configuration
+   */
+  cache: {
+    /**
+     * Markdown HTML cache configuration
+     */
+    markdown: {
+      /**
+       * Enable markdown HTML caching
+       * @default true
+       */
+      enabled: boolean
+      /**
+       * Maximum number of cached entries (LRU eviction)
+       * @default 100
+       */
+      maxSize: number
+    }
+  }
 }
 
 export type PartialWikiConfig = Partial<WikiConfig>

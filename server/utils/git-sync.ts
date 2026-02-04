@@ -58,7 +58,7 @@ export async function checkForChanges(): Promise<boolean> {
 /**
  * Get git status for health endpoint
  */
-export async function getStatus(): Promise<HealthStatus['git']> {
+export async function getGitStatus(): Promise<HealthStatus['git']> {
   if (!gitInstance) {
     return {
       enabled: false,

@@ -1,7 +1,7 @@
 import { getLogger } from '../utils/logger'
 import { fileWatcher } from '../utils/file-watcher'
 import { getConfig } from '../utils/config'
-import { getStatus as getGitStatus } from '../utils/git-sync'
+import { getGitStatus } from '../utils/git-sync'
 import type { HealthStatus } from '../../types/wiki'
 
 export default defineEventHandler(async () => {

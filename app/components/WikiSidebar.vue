@@ -66,11 +66,13 @@ const { isOpen } = useMobileSidebar()
   transform: translateX(0);
 }
 
-/* Desktop: always visible, sticky */
+/* Desktop: always visible, sticky, ignore mobile classes */
 @media (min-width: 768px) {
   .wiki-sidebar {
     position: sticky;
-    transform: translateX(0);
+    top: 0;
+    transform: translateX(0) !important;
+    z-index: 10;
   }
 }
 

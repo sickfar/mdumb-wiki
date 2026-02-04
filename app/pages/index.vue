@@ -15,13 +15,14 @@ const { showUpdateBanner, reload, dismiss } = useLiveReload()
     <BurgerMenu />
     <SidebarBackdrop />
     <WikiSidebar v-if="navigation" :navigation="navigation" />
+    <SkeletonSidebar v-else class="wiki-sidebar" />
     <main class="wiki-main">
       <div v-if="error" class="error-container">
         <h1>Error Loading Page</h1>
         <p>{{ error }}</p>
       </div>
       <WikiContent v-else-if="page" :page="page" />
-      <div v-else class="loading">Loading...</div>
+      <SkeletonContent v-else />
     </main>
   </div>
 </template>
@@ -46,9 +47,5 @@ const { showUpdateBanner, reload, dismiss } = useLiveReload()
   background-color: #fff5f5;
 }
 
-.loading {
-  padding: 2rem;
-  text-align: center;
-  color: #718096;
-}
+/* Sidebar styles are in WikiSidebar.vue component - removed to avoid conflicts */
 </style>
