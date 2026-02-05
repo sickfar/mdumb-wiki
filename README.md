@@ -4,284 +4,254 @@ A simple, fast, file-based markdown wiki built with Nuxt 4 and Bun.
 
 ## Features
 
-- 📝 GitHub Flavored Markdown with syntax highlighting
-- 🗂️ File-based structure - your filesystem is the database
-- ⚡ Built with Nuxt 4 and Bun for maximum performance
-- 🔍 **Fuzzy search** with keyboard shortcuts (`/` or `Ctrl+K`)
-- 🔄 **Live reload** - automatic page updates when files change (SSE)
-- 🐳 Docker ready with Bun-based images
-- ⚙️ Configurable via JSON + environment variables
-- 📊 Structured logging with Pino
-- 🧪 Full test coverage with Vitest (183 tests)
-- 🔒 Path traversal protection and XSS prevention
-- 📱 Responsive design
+- **Markdown Rendering** - GitHub Flavored Markdown with syntax highlighting (19 languages)
+- **File-based Structure** - Your filesystem is the database
+- **Web-based Editor** - Create, edit, and delete pages from the browser
+- **Live Reload** - Automatic page updates when files change (SSE)
+- **Fuzzy Search** - Fast client-side search with keyboard shortcuts
+- **Git Integration** - Optional auto-sync with git repositories
+- **Theme Toggle** - Light, dark, and auto themes
+- **Responsive Design** - Mobile-friendly with sidebar navigation
+- **Docker Ready** - Production-ready Bun-based images
+- **Security** - Path traversal protection and XSS prevention
 
-## Quick Start
+---
 
-### Development
+## Installation with Docker
+
+### Prerequisites
+
+- Docker Engine 20.10+
+- Docker Compose v2.0+
+- A directory with markdown files (your wiki content)
+
+### Quick Start
+
+1. **Create a directory for your wiki content:**
 
 ```bash
-# Install dependencies
-bun install
-
-# Run development server
-bun run dev
-
-# Run tests
-bun run test
-
-# Run tests with UI
-bun run test:ui
+mkdir -p ./wiki
+echo "# Welcome to My Wiki" > ./wiki/index.md
 ```
 
-Visit http://localhost:3000 to see your wiki.
+2. **Create a `docker-compose.yml` file:**
 
-### Docker Deployment
+```yaml
+version: '3.8'
+
+services:
+  wiki:
+    image: ghcr.io/sickfar/mdumb-wiki:latest
+    container_name: mdumb-wiki
+    ports:
+      - "3020:3020"
+    volumes:
+      - ./wiki:/wiki
+    restart: unless-stopped
+```
+
+3. **Start the container:**
 
 ```bash
-# Build and run with docker-compose
+docker-compose up -d
+```
+
+4. **Access the wiki:**
+
+Open http://localhost:3020 in your browser.
+
+The container uses sensible defaults: port `3020`, wiki path `/wiki`, log level `info`, and file watching enabled.
+
+### Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/sickfar/mdumb-wiki.git
+cd mdumb-wiki
+
+# Build the Docker image
+docker-compose build
+
+# Start the container
 docker-compose up -d
 
 # View logs
 docker-compose logs -f
 
-# Stop
+# Stop the container
 docker-compose down
 ```
 
-## Configuration
+### Docker Image Details
 
-### Config File
+The image uses a multi-stage build with Bun:
 
-Create a configuration file at `~/.config/sickfar-wiki/config.json`:
+| Stage | Purpose |
+|-------|---------|
+| `base` | Official `oven/bun:1` image |
+| `deps` | Installs dependencies with frozen lockfile |
+| `builder` | Runs `bun run build` to create production output |
+| `runner` | Minimal production image with `.output/` only |
 
-```json
-{
-  "contentPath": "/home/sickfar/wiki",
-  "port": 3020,
-  "host": "localhost",
-  "watch": true,
-  "logLevel": "info",
-  "title": "My Wiki",
-  "description": "Personal knowledge base",
-  "syntaxTheme": "github-dark",
-  "maxConcurrentOps": 10,
-  "cacheTTL": 60000,
-  "enableCache": true
-}
-```
+**Image size:** ~800MB (includes Bun runtime)
+
+---
+
+## Configuration in Docker
 
 ### Environment Variables
 
-Override config with environment variables:
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | Server port | `3020` |
+| `WIKI_PATH` | Path to wiki content inside container | `/wiki` |
+| `WIKI_CONFIG_PATH` | Path to config file inside container | - |
+| `LOG_LEVEL` | Logging verbosity: `trace`, `debug`, `info`, `warn`, `error`, `fatal` | `info` |
+| `NODE_ENV` | Environment mode | `production` |
+| `GIT_ENABLED` | Enable git sync (`true`/`false`) | `false` |
+| `GIT_SYNC_INTERVAL` | Sync interval in minutes | `5` |
+| `GIT_AUTO_PUSH` | Auto-push changes (`true`/`false`) | `true` |
+| `GIT_CONFLICT_STRATEGY` | Conflict resolution: `rebase`, `merge`, `branch` | `rebase` |
 
-- `PORT` - Server port (default: 3020)
-- `WIKI_PATH` - Path to wiki content directory
-- `WIKI_CONFIG_PATH` - Path to config.json file
-- `LOG_LEVEL` - Logging level (trace, debug, info, warn, error, fatal)
-- `NODE_ENV` - Environment (development, production)
-
-**Priority:** ENV variables > config.json > defaults
-
-### Docker Volumes
+### Volume Mounts
 
 ```yaml
 volumes:
-  - /path/to/your/wiki:/wiki:ro
+  # Wiki content (required, read-write for editor)
+  - /path/to/your/wiki:/wiki
+
+  # Config file (optional, read-only)
   - /path/to/config.json:/app/config.json:ro
 ```
 
-## Project Structure
+**Note:** The wiki volume is mounted read-write by default to allow the web editor to create and modify files. Add `:ro` suffix if you want read-only mode.
 
-```
-mdumb-wiki/
-├── server/              # Nuxt server (backend)
-│   ├── api/            # API endpoints
-│   │   ├── health.get.ts
-│   │   ├── navigation.get.ts
-│   │   └── content/[...path].get.ts
-│   ├── plugins/        # Server plugins
-│   │   └── 01.init.ts  # Logger initialization
-│   └── utils/          # Server utilities
-│       ├── config.ts   # Config management
-│       ├── logger.ts   # Pino logger
-│       ├── markdown.ts # Markdown parsing
-│       ├── navigation.ts # File tree generation
-│       └── security.ts # Path validation
-├── app/                # Frontend
-│   ├── pages/          # Vue pages/routes
-│   │   ├── index.vue
-│   │   └── [...slug].vue
-│   ├── components/     # Vue components
-│   │   ├── WikiSidebar.vue
-│   │   ├── WikiNavItem.vue
-│   │   └── WikiContent.vue
-│   └── app.vue         # Root component
-├── types/              # TypeScript types
-│   ├── config.ts
-│   ├── wiki.ts
-│   └── index.ts
-├── tests/              # Test files
-│   ├── unit/
-│   │   ├── config.test.ts
-│   │   ├── security.test.ts
-│   │   ├── logger.test.ts
-│   │   ├── markdown.test.ts
-│   │   └── navigation.test.ts
-│   └── setup.ts
-├── wiki/               # Wiki content directory
-├── Dockerfile          # Bun-based Docker image
-└── docker-compose.yml  # Docker compose config
-```
+### Configuration File
 
-## API Endpoints
-
-- `GET /api/health` - Health check with uptime, watcher status, and system info
-- `GET /api/navigation` - Get wiki navigation tree
-- `GET /api/content/{path}` - Get markdown content for a page
-- `GET /api/search` - Get search index (all pages with titles, paths, tags, excerpts)
-- `GET /api/events` - Server-Sent Events stream for live reload (file change notifications)
-
-### Health Endpoint Response
+Create a `config.json` file for advanced settings:
 
 ```json
 {
-  "status": "healthy",
-  "uptime": 123456,
-  "timestamp": "2026-02-01T12:00:00.000Z",
   "contentPath": "/wiki",
-  "watcherActive": false,
-  "pagesLoaded": 0
-}
-```
-
-### Navigation Endpoint Response
-
-```json
-[
-  {
-    "title": "Guides",
-    "slug": "guides",
-    "order": 0,
-    "path": "guides",
-    "children": [
-      {
-        "title": "Installation",
-        "slug": "guides/installation",
-        "order": 0,
-        "path": "guides/installation.md"
-      }
-    ]
-  }
-]
-```
-
-### Content Endpoint Response
-
-```json
-{
-  "slug": "guides/installation",
-  "title": "Installation Guide",
-  "description": "How to install MDumb Wiki",
-  "content": "# Installation\n\n...",
-  "html": "<h1>Installation</h1>...",
-  "frontmatter": {
-    "title": "Installation Guide",
-    "description": "How to install MDumb Wiki"
+  "port": 3020,
+  "host": "0.0.0.0",
+  "watch": true,
+  "logLevel": "info",
+  "title": "My Knowledge Base",
+  "description": "Personal wiki with git sync",
+  "syntaxTheme": "github-dark",
+  "maxConcurrentOps": 10,
+  "cacheTTL": 60000,
+  "enableCache": true,
+  "security": {
+    "sanitizeHtml": true,
+    "allowedTags": [
+      "b", "i", "em", "strong", "code", "pre", "a", "img", "ul", "ol", "li",
+      "p", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "hr", "br",
+      "table", "thead", "tbody", "tr", "th", "td", "span", "div"
+    ],
+    "allowedAttributes": {
+      "*": ["class", "id"],
+      "a": ["href", "title", "target"],
+      "img": ["src", "alt", "title", "width", "height"]
+    }
   },
-  "path": "guides/installation.md",
-  "modifiedAt": "2026-02-01T12:00:00.000Z",
-  "createdAt": "2026-01-01T12:00:00.000Z"
+  "assets": {
+    "allowedExtensions": [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".pdf"],
+    "maxFileSize": 10485760,
+    "enableCache": true,
+    "cacheDuration": 3600
+  },
+  "git": {
+    "enabled": true,
+    "syncInterval": 5,
+    "autoCommit": true,
+    "autoPush": true,
+    "commitMessageTemplate": "Auto-commit: {timestamp}",
+    "conflictStrategy": "rebase"
+  },
+  "cache": {
+    "markdown": {
+      "enabled": true,
+      "maxSize": 100
+    }
+  }
 }
 ```
 
-## Live Reload
+**Configuration Priority:** Environment Variables > Config File > Defaults
 
-MDumb Wiki automatically detects file changes and notifies you to reload the page.
+### Complete Docker Compose Example
 
-### How It Works
+```yaml
+version: '3.8'
 
-1. **File Watcher**: Uses `chokidar` to monitor your wiki directory for changes
-2. **SSE Connection**: Establishes a Server-Sent Events connection to `/api/events`
-3. **Real-time Updates**: When files change, a banner appears: "📝 Page updated. [Reload]"
-4. **Soft Reload**: Click "Reload" to refresh content without losing your position
-
-### Configuration
-
-Enable/disable live reload in your config:
-
-```json
-{
-  "watch": true
-}
+services:
+  wiki:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mdumb-wiki
+    ports:
+      - "3020:3020"
+    volumes:
+      # Mount wiki content (read-write for editor)
+      - ${WIKI_PATH:-./wiki}:/wiki
+      # Mount config file
+      - ${CONFIG_PATH:-./config/config.json}:/app/config.json:ro
+    environment:
+      - NODE_ENV=production
+      - PORT=3020
+      - WIKI_PATH=/wiki
+      - WIKI_CONFIG_PATH=/app/config.json
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - GIT_ENABLED=${GIT_ENABLED:-false}
+      - GIT_SYNC_INTERVAL=${GIT_SYNC_INTERVAL:-5}
+      - GIT_AUTO_PUSH=${GIT_AUTO_PUSH:-true}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3020/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 ```
 
-Or via environment variable:
+Run with custom paths:
+
 ```bash
-WATCH=false bun run dev
+WIKI_PATH=/var/wiki CONFIG_PATH=/etc/mdumb-wiki/config.json docker-compose up -d
 ```
 
-### Features
+---
 
-- Debouncing (300ms) to avoid spam during mass changes
-- Detects file creation, modification, and deletion
-- Automatic reconnection on connection loss
-- Ignores hidden files (`.git`, `.DS_Store`, etc.)
+## Usage
 
-## Search
+### Writing Content
 
-Fast client-side fuzzy search across all your wiki pages.
+#### File Structure
 
-### Keyboard Shortcuts
-
-- **`/`** - Open search modal
-- **`Ctrl+K`** or **`Cmd+K`** - Open search (alternative)
-- **`↑` / `↓`** - Navigate results
-- **`Enter`** - Select current result
-- **`Esc`** - Close search modal
-
-### Search Index
-
-The search index includes:
-- Page titles
-- File paths
-- Tags from front-matter
-- Content excerpts (first 200 chars)
-
-Search results are **fuzzy matched** (finds "instal" in "installation") and limited to the top 10 matches.
-
-### How It Works
-
-1. **Index Building**: Server scans all `.md` files and builds a search index at `/api/search`
-2. **Client Search**: Uses Fuse.js for fast fuzzy matching
-3. **Live Updates**: Search index rebuilds when files change
-4. **Debouncing**: 150ms debounce for smooth typing experience
-
-## Writing Content
-
-### File Structure
-
-Place markdown files in your wiki directory:
+Organize markdown files in your wiki directory:
 
 ```
 wiki/
 ├── index.md              # Homepage (required)
-├── about.md             # Top-level page
-└── guides/              # Folder
-    ├── index.md         # Folder overview (optional)
-    ├── installation.md  # Guide page
-    └── configuration.md # Another guide
+├── about.md              # Top-level page
+└── guides/               # Folder
+    ├── index.md          # Folder overview (optional)
+    ├── installation.md   # Guide page
+    └── configuration.md  # Another guide
 ```
 
-### Front Matter
+#### Front Matter
 
-Add YAML front matter to your markdown files:
+Add YAML front matter to customize page metadata:
 
 ```markdown
 ---
 title: Installation Guide
 description: How to install and configure the wiki
-tags: [guide, setup]
+tags: [guide, setup, docker]
 author: Your Name
 ---
 
@@ -290,7 +260,7 @@ author: Your Name
 Your content here...
 ```
 
-### Markdown Features
+#### Supported Markdown Features
 
 - Headings (h1-h6)
 - Bold, italic, strikethrough
@@ -302,150 +272,291 @@ Your content here...
 - Blockquotes
 - Horizontal rules
 
-## Development
+#### Syntax Highlighting
 
-### Adding Dependencies
+Supported languages: TypeScript, JavaScript, Python, Bash, JSON, YAML, HTML, CSS, SQL, Go, Rust, Java, Kotlin, C, C++, PHP, Ruby, Markdown, Dockerfile.
 
-```bash
-bun add <package>
-bun add -D <dev-package>
+````markdown
+```typescript
+function greet(name: string): string {
+  return `Hello, ${name}!`
+}
+```
+````
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `/` or `Ctrl+K` | Open search modal |
+| `↑` / `↓` | Navigate search results |
+| `Enter` | Select current result |
+| `Esc` | Close modal |
+
+### Web Editor
+
+Click the "Edit" button on any page to open the web editor:
+
+- **Live Preview** - See rendered markdown as you type
+- **Formatting Toolbar** - Bold, italic, code, links, headings
+- **Draft Recovery** - Automatically saves drafts to localStorage
+- **Conflict Detection** - Warns if file changed since loading
+
+To create new files or folders, use the context menu (right-click) in the sidebar.
+
+### Theme Toggle
+
+Click the theme icon in the sidebar to switch between:
+- **Light** - Light background with dark text
+- **Dark** - Dark background with light text
+- **Auto** - Follows system preference
+
+### Search
+
+The fuzzy search indexes:
+- Page titles
+- File paths
+- Tags from front-matter
+- Content excerpts (first 200 characters)
+
+Results are ranked by relevance and limited to the top 10 matches.
+
+### Live Reload
+
+When files change on disk, a banner appears: "Page updated. [Reload]"
+
+Configure file watching:
+```json
+{
+  "watch": true
+}
 ```
 
-### Running Tests
-
+Or disable via environment:
 ```bash
-# Run all tests
-bun run test
-
-# Run tests with UI
-bun run test:ui
-
-# Run specific test file
-bun run test tests/unit/config.test.ts
+WATCH=false docker-compose up -d
 ```
 
-### Code Quality
+### Soft Ignore
+
+Create a `.mdumbignore` file in your wiki root to hide files from navigation:
+
+```
+# Hide draft files
+drafts/
+*.draft.md
+
+# Hide specific files
+private.md
+```
+
+Patterns work like `.gitignore`. Ignored files are still accessible via direct URL.
+
+### Git Integration
+
+Enable git sync to automatically commit and push changes:
+
+```json
+{
+  "git": {
+    "enabled": true,
+    "syncInterval": 5,
+    "autoCommit": true,
+    "autoPush": true,
+    "conflictStrategy": "rebase"
+  }
+}
+```
+
+**Conflict strategies:**
+- `rebase` - Rebase local changes on top of remote (default)
+- `merge` - Merge remote changes into local
+- `branch` - Create a conflict branch for manual resolution
+
+Check git status via the health endpoint:
 
 ```bash
-# Lint code
-bun run lint
+curl http://localhost:3020/api/health | jq '.git'
 ```
+
+---
+
+## API Endpoints
+
+### Health Check
+
+```
+GET /api/health
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "uptime": 123456,
+  "timestamp": "2026-02-05T12:00:00.000Z",
+  "contentPath": "/wiki",
+  "watcherActive": true,
+  "pagesLoaded": 42,
+  "git": {
+    "enabled": true,
+    "branch": "main",
+    "lastCommit": "abc1234",
+    "upToDate": true
+  }
+}
+```
+
+### Navigation
+
+```
+GET /api/navigation
+```
+
+Returns hierarchical navigation tree.
+
+### Content
+
+```
+GET /api/content/{path}
+```
+
+Returns markdown content with rendered HTML.
+
+### Search Index
+
+```
+GET /api/search
+```
+
+Returns search index for client-side fuzzy matching.
+
+### Events (SSE)
+
+```
+GET /api/events
+```
+
+Server-Sent Events stream for live reload notifications.
+
+### File Operations
+
+```
+POST /api/file      # Create or update file
+DELETE /api/file    # Delete file
+POST /api/folder    # Create folder
+GET /api/file       # Read raw file content
+```
+
+---
 
 ## Troubleshooting
 
-### Port Already in Use
+### Container won't start
 
-Change the port via environment variable:
+Check logs:
 ```bash
-PORT=4000 bun run dev
+docker-compose logs wiki
 ```
 
-### Config Not Loaded
-
-Check the config file path and JSON syntax:
-```bash
-cat ~/.config/sickfar-wiki/config.json
-```
-
-### Wiki Content Not Showing
-
-Verify the `WIKI_PATH` points to a valid directory with `.md` files:
+Verify wiki directory exists and has `index.md`:
 ```bash
 ls -la ./wiki
 ```
 
-Or set it explicitly:
+### Permission denied
+
+Ensure the wiki directory is readable and writable:
 ```bash
-WIKI_PATH=./wiki bun run dev
+chmod -R 755 ./wiki
 ```
 
-### Dependencies Not Installing
+For read-only mode (no editor), add `:ro` to the volume mount: `./wiki:/wiki:ro`
 
-Make sure you're using Bun (not npm/node):
+### Port already in use
+
+Change the port mapping:
+```yaml
+ports:
+  - "8080:3020"
+```
+
+### Config not loading
+
+Verify config file syntax:
 ```bash
-bun --version  # Should show 1.0+
+cat ./config/config.json | jq .
+```
+
+Check container sees the file:
+```bash
+docker exec mdumb-wiki cat /app/config.json
+```
+
+### Health check failing
+
+Check if the server is running:
+```bash
+docker exec mdumb-wiki curl -f http://localhost:3020/api/health
+```
+
+---
+
+## Development
+
+### Local Setup
+
+```bash
+# Install Bun (if not installed)
+curl -fsSL https://bun.sh/install | bash
+
+# Install dependencies
 bun install
+
+# Run development server
+WIKI_PATH=./wiki bun run dev
+
+# Run tests
+bun run test
+
+# Lint code
+bun run lint
 ```
 
-### Docker Build Fails
+### Project Structure
 
-Ensure Docker is running and you have network access:
-```bash
-docker --version
-docker-compose build
 ```
+mdumb-wiki/
+├── server/              # Backend (Nuxt/Nitro)
+│   ├── api/             # API endpoints
+│   ├── plugins/         # Server plugins
+│   └── utils/           # Server utilities
+├── app/                 # Frontend (Vue 3)
+│   ├── pages/           # Vue pages
+│   ├── components/      # Vue components
+│   └── composables/     # Vue composables
+├── types/               # TypeScript types
+├── tests/               # Test files
+├── wiki/                # Sample wiki content
+├── Dockerfile           # Docker build
+└── docker-compose.yml   # Docker orchestration
+```
+
+---
 
 ## Tech Stack
 
 - **Framework:** Nuxt 4 (Vue 3, TypeScript)
 - **Runtime:** Bun
-- **Markdown:** markdown-it, shiki (syntax highlighting)
-- **Search:** Fuse.js (fuzzy search)
-- **File Watching:** chokidar (live reload)
-- **Utilities:** @vueuse/core (keyboard shortcuts, composables)
-- **Logging:** pino, pino-pretty
-- **Testing:** vitest (183 tests)
-- **Styling:** Custom CSS (no framework for minimal design)
+- **Markdown:** markdown-it, Shiki (syntax highlighting)
+- **Search:** Fuse.js (fuzzy matching)
+- **File Watching:** Chokidar
+- **Git:** simple-git
+- **Logging:** Pino
+- **Testing:** Vitest
 
-## Security
-
-- Path traversal protection (blocks `../` attempts)
-- Input validation on all file operations
-- Read-only file access
-- Configurable allowed HTML tags
-- Structured logging for audit trails
-
-## Performance
-
-- Markdown parser singleton pattern
-- Config caching
-- Async Shiki initialization
-- Fast Bun runtime
-- Minimal dependencies
+---
 
 ## License
 
 MIT
-
-## Roadmap
-
-### v1.0 (Current Skeleton) ✅
-- [x] Config management
-- [x] Markdown rendering with syntax highlighting
-- [x] Basic navigation
-- [x] Docker setup
-- [x] Testing infrastructure
-- [x] Security (path validation)
-- [x] Structured logging
-
-### v1.1 (Current) ✅
-- [x] Live reload (SSE + file watching)
-- [x] Search functionality (Fuse.js)
-- [ ] Git auto-sync
-- [ ] Dark theme toggle
-- [ ] Breadcrumbs navigation
-
-### v1.2 (Next)
-- [ ] Mobile optimizations
-- [ ] Table of contents
-- [ ] Recent changes feed
-
-### v2.0 (Future)
-- [ ] Web-based editor
-- [ ] File/folder management UI
-- [ ] Conflict detection
-- [ ] History viewer
-- [ ] Multi-user support
-- [ ] Authentication
-
-## Contributing
-
-This is a personal project, but suggestions and bug reports are welcome via GitHub issues.
-
-## Support
-
-For issues or questions:
-1. Check the troubleshooting section above
-2. Review the configuration documentation
-3. Check existing GitHub issues
-4. Open a new issue with details

@@ -50,6 +50,19 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    // Variation 3: Directory with README.md (e.g., "guide" -> "guide/README.md")
+    if (!filePath) {
+      try {
+        const readmePath = join(pathParam, 'README.md')
+        resolvedPath = validatePath(readmePath, config.contentPath)
+        if (existsSync(resolvedPath)) {
+          filePath = resolvedPath
+        }
+      } catch {
+        // Path validation failed, try next variation
+      }
+    }
+
     // If no valid file found, check if it's a folder
     if (!filePath) {
       // Check if the path exists as a directory
@@ -58,7 +71,7 @@ export default defineEventHandler(async (event) => {
         if (existsSync(folderPath) && statSync(folderPath).isDirectory()) {
           // It's a folder without index.md - return folder info
           const files = readdirSync(folderPath)
-            .filter(file => file.endsWith('.md') && file !== 'index.md')
+            .filter(file => file.endsWith('.md') && file !== 'index.md' && file !== 'README.md')
             .map(file => file.replace(/\.md$/, ''))
 
           logger.info(`Serving folder stub for: ${pathParam}`)

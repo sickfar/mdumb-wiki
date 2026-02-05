@@ -91,9 +91,11 @@ export function buildNavigation(
       : folder.name
     const folderFullPath = path.join(fullPath, folder.name)
 
-    // Check if folder has an index.md
+    // Check if folder has an index.md or README.md
     const indexPath = path.join(folderFullPath, 'index.md')
+    const readmePath = path.join(folderFullPath, 'README.md')
     const hasIndex = fs.existsSync(indexPath)
+    const hasReadme = fs.existsSync(readmePath)
     let title = folder.name
 
     if (hasIndex) {
@@ -107,6 +109,18 @@ export function buildNavigation(
       } catch {
         // If we can't read the index, use folder name
         console.error(`Error reading index.md for ${folderPath}:`, error)
+      }
+    } else if (hasReadme) {
+      // Fallback: Extract title from README.md front matter
+      try {
+        const readmeContent = fs.readFileSync(readmePath, 'utf-8')
+        const extractedTitle = extractTitle(readmeContent)
+        if (extractedTitle) {
+          title = extractedTitle
+        }
+      } catch {
+        // If we can't read the README, use folder name
+        console.error(`Error reading README.md for ${folderPath}:`, error)
       }
     }
 
@@ -134,9 +148,9 @@ export function buildNavigation(
       : file.name
     const fileFullPath = path.join(fullPath, file.name)
 
-    // Skip index.md files in subdirectories (they represent the folder itself)
-    // But include index.md at the root level
-    if (file.name === 'index.md' && currentPath !== '') {
+    // Skip index.md and README.md files in subdirectories (they represent the folder itself)
+    // But include them at the root level
+    if ((file.name === 'index.md' || file.name === 'README.md') && currentPath !== '') {
       continue
     }
 
