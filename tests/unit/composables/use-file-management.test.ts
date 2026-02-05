@@ -3,10 +3,10 @@ import type { FileWriteResult, FolderCreateResult, FilePromoteResult } from '~/s
 
 // Mock $fetch
 const mockFetch = vi.fn()
-globalThis.$fetch = mockFetch as any
+globalThis.$fetch = mockFetch as unknown as typeof $fetch
 
 describe('useFileManagement', () => {
-  let useFileManagement: () => any
+  let useFileManagement: () => ReturnType<typeof import('../../../app/composables/useFileManagement').useFileManagement>
 
   beforeEach(async () => {
     vi.clearAllMocks()

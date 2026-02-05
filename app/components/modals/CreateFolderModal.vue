@@ -52,7 +52,7 @@ const checkFolderExists = async () => {
     const result = await $fetch<{ exists: boolean }>(`/api/file?path=${encodeURIComponent(path)}`)
     // The API returns { exists: true/false } rather than a 404
     folderExists.value = result.exists
-  } catch (err) {
+  } catch {
     // Network or other errors - assume folder might exist to be safe
     folderExists.value = false
   }

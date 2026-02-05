@@ -34,7 +34,9 @@ vi.mock('../../../server/utils/sse', () => ({
   sendSSEMessage: vi.fn()
 }))
 
+// eslint-disable-next-line import/first
 import fileDeleteHandler from '../../../server/api/file.delete'
+// eslint-disable-next-line import/first
 import { sendSSEMessage } from '../../../server/utils/sse'
 
 describe('DELETE /api/file', () => {
@@ -48,7 +50,7 @@ describe('DELETE /api/file', () => {
     rmSync(TEST_DIR, { recursive: true, force: true })
   })
 
-  const createMockEvent = (query: Record<string, string | string[]>): H3Event => {
+  const createMockEvent = (_query: Record<string, string | string[]>): H3Event => {
     return {
       node: {
         req: {},

@@ -12,7 +12,7 @@ describe('CreateFolderModal - Folder Existence Validation', () => {
   describe('folder existence check API response handling', () => {
     it('should correctly identify non-existent folder when API returns exists: false', async () => {
       const mockFetch = vi.fn().mockResolvedValue({ exists: false })
-      globalThis.$fetch = mockFetch as any
+      globalThis.$fetch = mockFetch as unknown as typeof $fetch
 
       const path = 'my-folder/'
       const result = await $fetch<{ exists: boolean }>(`/api/file?path=${encodeURIComponent(path)}`)
@@ -23,7 +23,7 @@ describe('CreateFolderModal - Folder Existence Validation', () => {
 
     it('should correctly identify existing folder when API returns exists: true', async () => {
       const mockFetch = vi.fn().mockResolvedValue({ exists: true })
-      globalThis.$fetch = mockFetch as any
+      globalThis.$fetch = mockFetch as unknown as typeof $fetch
 
       const path = 'existing-folder/'
       const result = await $fetch<{ exists: boolean }>(`/api/file?path=${encodeURIComponent(path)}`)
@@ -33,14 +33,14 @@ describe('CreateFolderModal - Folder Existence Validation', () => {
 
     it('should handle network errors gracefully', async () => {
       const mockFetch = vi.fn().mockRejectedValue(new Error('Network error'))
-      globalThis.$fetch = mockFetch as any
+      globalThis.$fetch = mockFetch as unknown as typeof $fetch
 
       let folderExists = true // Assume exists initially
 
       try {
         const result = await $fetch<{ exists: boolean }>(`/api/file?path=test/`)
         folderExists = result.exists
-      } catch (err) {
+      } catch {
         // On error, assume folder might not exist (safe default for creation)
         folderExists = false
       }
@@ -50,7 +50,7 @@ describe('CreateFolderModal - Folder Existence Validation', () => {
 
     it('should handle malformed API responses', async () => {
       const mockFetch = vi.fn().mockResolvedValue({ wrongField: true })
-      globalThis.$fetch = mockFetch as any
+      globalThis.$fetch = mockFetch as unknown as typeof $fetch
 
       const result = await $fetch<{ exists: boolean }>(`/api/file?path=test/`)
 

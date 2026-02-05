@@ -10,6 +10,10 @@ vi.mock('../../server/utils/markdown-cache', () => ({
   setInCache: vi.fn()
 }))
 
+// Import after mocks - must be after vi.mock()
+// eslint-disable-next-line import/first
+import { clearIgnoreCache, getIgnoreStatus } from '../../server/utils/ignore'
+// eslint-disable-next-line import/first
 import { fileWatcher } from '../../server/utils/file-watcher'
 
 describe('FileWatcher', () => {
@@ -199,4 +203,155 @@ describe('FileWatcher', () => {
       }, 100)
     })
   }, { timeout: 15000 })
+})
+
+describe('FileWatcher .mdumbignore handling', () => {
+  let testDir: string
+
+  beforeEach(async () => {
+    await fileWatcher.stop()
+    testDir = join(process.cwd(), 'tests', 'fixtures', 'watch-ignore-test-' + Date.now())
+    await fs.mkdir(testDir, { recursive: true })
+    clearIgnoreCache()
+  })
+
+  afterEach(async () => {
+    await fileWatcher.stop()
+    await fs.rm(testDir, { recursive: true, force: true })
+    clearIgnoreCache()
+  })
+
+  it('should detect .mdumbignore file changes (not filtered by hidden file rule)', async () => {
+    // Create initial ignore file
+    const ignorePath = join(testDir, '.mdumbignore')
+    await fs.writeFile(ignorePath, 'drafts/')
+
+    return new Promise<void>((resolve) => {
+      const handler = (data: Record<string, unknown>) => {
+        if (typeof data.path === 'string' && data.path.includes('.mdumbignore')) {
+          expect(data.timestamp).toBeTypeOf('number')
+          fileWatcher.off('ignore:changed', handler)
+          resolve()
+        }
+      }
+
+      fileWatcher.start(testDir)
+      fileWatcher.on('ignore:changed', handler)
+
+      // Modify ignore file after a short delay
+      setTimeout(async () => {
+        await fs.writeFile(ignorePath, 'drafts/\n*.tmp')
+      }, 100)
+    })
+  })
+
+  it('should emit ignore:changed event when .mdumbignore is modified', async () => {
+    const ignorePath = join(testDir, '.mdumbignore')
+    await fs.writeFile(ignorePath, 'initial/')
+
+    return new Promise<void>((resolve) => {
+      const handler = (data: Record<string, unknown>) => {
+        if (typeof data.path === 'string' && data.path.includes('.mdumbignore')) {
+          fileWatcher.off('ignore:changed', handler)
+          resolve()
+        }
+      }
+
+      fileWatcher.start(testDir)
+      fileWatcher.on('ignore:changed', handler)
+
+      // Modify the file
+      setTimeout(async () => {
+        await fs.writeFile(ignorePath, 'modified/')
+      }, 100)
+    })
+  })
+
+  it('should emit ignore:changed event when .mdumbignore is created', async () => {
+    const ignorePath = join(testDir, '.mdumbignore')
+
+    return new Promise<void>((resolve) => {
+      const handler = (data: Record<string, unknown>) => {
+        if (typeof data.path === 'string' && data.path.includes('.mdumbignore')) {
+          fileWatcher.off('ignore:changed', handler)
+          resolve()
+        }
+      }
+
+      fileWatcher.start(testDir)
+      fileWatcher.on('ignore:changed', handler)
+
+      // Create the file
+      setTimeout(async () => {
+        await fs.writeFile(ignorePath, 'new-pattern/')
+      }, 100)
+    })
+  })
+
+  it('should emit ignore:changed event when .mdumbignore is deleted', async () => {
+    const ignorePath = join(testDir, '.mdumbignore')
+    await fs.writeFile(ignorePath, 'to-be-deleted/')
+
+    return new Promise<void>((resolve) => {
+      const handler = (data: Record<string, unknown>) => {
+        if (typeof data.path === 'string' && data.path.includes('.mdumbignore')) {
+          fileWatcher.off('ignore:changed', handler)
+          resolve()
+        }
+      }
+
+      fileWatcher.start(testDir)
+      fileWatcher.on('ignore:changed', handler)
+
+      // Delete the file
+      setTimeout(async () => {
+        await fs.unlink(ignorePath)
+      }, 100)
+    })
+  })
+
+  it('should still ignore regular hidden files (.hidden.md)', async () => {
+    let hiddenFileEventFired = false
+
+    fileWatcher.on('file:created', (data: { path: string }) => {
+      if (data.path.includes('.hidden')) {
+        hiddenFileEventFired = true
+      }
+    })
+
+    fileWatcher.start(testDir)
+
+    // Create hidden file
+    await fs.writeFile(join(testDir, '.hidden.md'), 'secret')
+
+    // Wait to see if event is emitted
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    expect(hiddenFileEventFired).toBe(false)
+  })
+
+  it('should clear ignore cache when .mdumbignore changes', async () => {
+    const ignorePath = join(testDir, '.mdumbignore')
+    await fs.writeFile(ignorePath, 'drafts/')
+
+    // Load the cache
+    const { loadIgnorePatterns } = await import('../../server/utils/ignore')
+    loadIgnorePatterns(testDir)
+    expect(getIgnoreStatus().loaded).toBe(true)
+
+    return new Promise<void>((resolve) => {
+      fileWatcher.on('ignore:changed', () => {
+        // Cache should be cleared after event
+        expect(getIgnoreStatus().loaded).toBe(false)
+        resolve()
+      })
+
+      fileWatcher.start(testDir)
+
+      // Modify the file
+      setTimeout(async () => {
+        await fs.writeFile(ignorePath, 'modified/')
+      }, 100)
+    })
+  })
 })

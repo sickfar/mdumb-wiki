@@ -52,7 +52,7 @@ const checkFileExists = async () => {
     const result = await $fetch<{ exists: boolean }>(`/api/file?path=${encodeURIComponent(path)}`)
     // The API returns { exists: true/false } rather than a 404
     fileExists.value = result.exists
-  } catch (err) {
+  } catch {
     // Network or other errors - assume file might exist to be safe
     fileExists.value = false
   }

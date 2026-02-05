@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import type { NavigationItem } from '../../types/wiki'
+import { isPathIgnored } from './ignore'
 
 /**
  * Simple front matter parser
@@ -58,6 +59,14 @@ export function buildNavigation(
   for (const entry of entries) {
     // Skip hidden files and directories (starting with .)
     if (entry.name.startsWith('.')) {
+      continue
+    }
+
+    // Check if this entry should be ignored via .mdumbignore
+    const entryRelativePath = currentPath
+      ? `${currentPath}/${entry.name}`
+      : entry.name
+    if (isPathIgnored(entryRelativePath, entry.isDirectory(), rootPath)) {
       continue
     }
 

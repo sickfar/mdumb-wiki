@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs'
 import { join, relative, basename } from 'node:path'
 import matter from 'gray-matter'
 import type { SearchIndexItem } from '../../types/wiki'
+import { isPathIgnored } from './ignore'
 
 /**
  * Build search index from all markdown files in the wiki directory
@@ -37,6 +38,12 @@ async function walkDirectory(
       }
 
       const fullPath = join(dirPath, entry.name)
+
+      // Check if this entry should be ignored via .mdumbignore
+      const relativePath = relative(basePath, fullPath)
+      if (isPathIgnored(relativePath, entry.isDirectory(), basePath)) {
+        continue
+      }
 
       if (entry.isDirectory()) {
         // Recursively walk subdirectories

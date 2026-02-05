@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
 import { buildNavigation } from '../../server/utils/navigation'
+import { clearIgnoreCache } from '../../server/utils/ignore'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -169,9 +170,10 @@ describe('Navigation System', () => {
 
     const navigation = buildNavigation(testDir)
 
-    // Empty folder should not appear in navigation or appear with empty children
+    // Empty folder appears in navigation with empty children (folder stubs support)
     const emptyFolder = navigation.find(item => item.slug === 'empty-folder')
-    expect(emptyFolder).toBeUndefined()
+    expect(emptyFolder).toBeDefined()
+    expect(emptyFolder?.children).toEqual([])
 
     // Clean up
     fs.rmdirSync(emptyDir)
@@ -201,5 +203,169 @@ describe('Navigation System', () => {
 
     expect(projectA?.path).toBe('projects/project-a.md')
     expect(projectA?.slug).toBe('projects/project-a')
+  })
+})
+
+describe('Navigation with .mdumbignore', () => {
+  const testDir = path.join(process.cwd(), 'tests', 'fixtures', 'ignore-nav-test')
+
+  beforeEach(() => {
+    // Clean up any existing test directory
+    if (fs.existsSync(testDir)) {
+      fs.rmSync(testDir, { recursive: true, force: true })
+    }
+
+    // Create test directory structure
+    // ignore-nav-test/
+    // ├── .mdumbignore          # "drafts/\n*.secret.md\n!important.secret.md"
+    // ├── index.md
+    // ├── visible.md
+    // ├── hidden.secret.md      # ignored in nav
+    // ├── important.secret.md   # NOT ignored (negation)
+    // ├── drafts/               # ignored folder
+    // │   ├── draft1.md
+    // │   └── draft2.md
+    // └── public/
+    //     ├── page.md
+    //     └── temp.secret.md    # ignored in nav
+
+    fs.mkdirSync(testDir, { recursive: true })
+    fs.mkdirSync(path.join(testDir, 'drafts'), { recursive: true })
+    fs.mkdirSync(path.join(testDir, 'public'), { recursive: true })
+
+    // Create .mdumbignore
+    fs.writeFileSync(
+      path.join(testDir, '.mdumbignore'),
+      'drafts/\n*.secret.md\n!important.secret.md'
+    )
+
+    // Create markdown files
+    fs.writeFileSync(path.join(testDir, 'index.md'), '---\ntitle: Home\n---\n# Home')
+    fs.writeFileSync(path.join(testDir, 'visible.md'), '---\ntitle: Visible\n---\n# Visible')
+    fs.writeFileSync(path.join(testDir, 'hidden.secret.md'), '---\ntitle: Hidden Secret\n---\n# Hidden')
+    fs.writeFileSync(path.join(testDir, 'important.secret.md'), '---\ntitle: Important Secret\n---\n# Important')
+    fs.writeFileSync(path.join(testDir, 'drafts', 'draft1.md'), '---\ntitle: Draft 1\n---\n# Draft 1')
+    fs.writeFileSync(path.join(testDir, 'drafts', 'draft2.md'), '---\ntitle: Draft 2\n---\n# Draft 2')
+    fs.writeFileSync(path.join(testDir, 'public', 'page.md'), '---\ntitle: Public Page\n---\n# Public')
+    fs.writeFileSync(path.join(testDir, 'public', 'temp.secret.md'), '---\ntitle: Temp Secret\n---\n# Temp Secret')
+
+    // Clear cache before each test
+    clearIgnoreCache()
+  })
+
+  afterEach(() => {
+    if (fs.existsSync(testDir)) {
+      fs.rmSync(testDir, { recursive: true, force: true })
+    }
+    clearIgnoreCache()
+  })
+
+  it('should exclude files matching ignore patterns from navigation', () => {
+    const navigation = buildNavigation(testDir)
+
+    // hidden.secret.md should be excluded
+    const hiddenSecret = navigation.find(item => item.slug === 'hidden.secret')
+    expect(hiddenSecret).toBeUndefined()
+
+    // visible.md should still appear
+    const visible = navigation.find(item => item.slug === 'visible')
+    expect(visible).toBeDefined()
+    expect(visible?.title).toBe('Visible')
+  })
+
+  it('should exclude folders matching ignore patterns from navigation', () => {
+    const navigation = buildNavigation(testDir)
+
+    // drafts/ folder should be excluded
+    const drafts = navigation.find(item => item.slug === 'drafts')
+    expect(drafts).toBeUndefined()
+
+    // public/ folder should still appear
+    const publicFolder = navigation.find(item => item.slug === 'public')
+    expect(publicFolder).toBeDefined()
+  })
+
+  it('should allow non-ignored sibling files to still appear', () => {
+    const navigation = buildNavigation(testDir)
+
+    // Check that public folder exists and has the public page
+    const publicFolder = navigation.find(item => item.slug === 'public')
+    expect(publicFolder).toBeDefined()
+
+    const publicPage = publicFolder?.children?.find(item => item.slug === 'public/page')
+    expect(publicPage).toBeDefined()
+    expect(publicPage?.title).toBe('Public Page')
+  })
+
+  it('should support negation patterns (unignored files appear)', () => {
+    const navigation = buildNavigation(testDir)
+
+    // important.secret.md should NOT be ignored due to negation pattern
+    const importantSecret = navigation.find(item => item.slug === 'important.secret')
+    expect(importantSecret).toBeDefined()
+    expect(importantSecret?.title).toBe('Important Secret')
+  })
+
+  it('should filter files in nested folders', () => {
+    const navigation = buildNavigation(testDir)
+
+    const publicFolder = navigation.find(item => item.slug === 'public')
+    expect(publicFolder).toBeDefined()
+
+    // temp.secret.md inside public/ should be excluded
+    const tempSecret = publicFolder?.children?.find(item => item.slug === 'public/temp.secret')
+    expect(tempSecret).toBeUndefined()
+  })
+
+  it('should handle glob patterns (*.draft.md ignores all draft files)', () => {
+    // Update ignore file with glob pattern
+    fs.writeFileSync(path.join(testDir, '.mdumbignore'), '*.draft.md')
+
+    // Create some draft files
+    fs.writeFileSync(path.join(testDir, 'post.draft.md'), '---\ntitle: Post Draft\n---\n# Draft')
+    fs.writeFileSync(path.join(testDir, 'notes.draft.md'), '---\ntitle: Notes Draft\n---\n# Draft')
+
+    clearIgnoreCache()
+    const navigation = buildNavigation(testDir)
+
+    const postDraft = navigation.find(item => item.slug === 'post.draft')
+    const notesDraft = navigation.find(item => item.slug === 'notes.draft')
+
+    expect(postDraft).toBeUndefined()
+    expect(notesDraft).toBeUndefined()
+
+    // Regular files should still appear
+    const visible = navigation.find(item => item.slug === 'visible')
+    expect(visible).toBeDefined()
+  })
+
+  it('should handle directory patterns (private/ ignores folder)', () => {
+    // Create private folder
+    fs.mkdirSync(path.join(testDir, 'private'), { recursive: true })
+    fs.writeFileSync(path.join(testDir, 'private', 'secret.md'), '---\ntitle: Secret\n---\n# Secret')
+
+    // Update ignore file
+    fs.writeFileSync(path.join(testDir, '.mdumbignore'), 'private/')
+
+    clearIgnoreCache()
+    const navigation = buildNavigation(testDir)
+
+    const privateFolder = navigation.find(item => item.slug === 'private')
+    expect(privateFolder).toBeUndefined()
+  })
+
+  it('should work when no .mdumbignore file exists', () => {
+    // Remove the ignore file
+    fs.unlinkSync(path.join(testDir, '.mdumbignore'))
+
+    clearIgnoreCache()
+    const navigation = buildNavigation(testDir)
+
+    // All files should be visible
+    const drafts = navigation.find(item => item.slug === 'drafts')
+    expect(drafts).toBeDefined()
+
+    const hiddenSecret = navigation.find(item => item.slug === 'hidden.secret')
+    expect(hiddenSecret).toBeDefined()
   })
 })

@@ -1,18 +1,31 @@
-import { describe, test, expect, beforeAll, afterAll } from 'vitest'
+import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import { parseMarkdown, resetParser, getMarkdownParser } from '../../server/utils/markdown'
+import { clearConfigCache } from '../../server/utils/config'
+import { clearCache } from '../../server/utils/markdown-cache'
 
 describe('HTML Sanitization', () => {
   // Don't reset parser between tests - Shiki is expensive to initialize
   // and should be reused as a singleton across all tests in this file
 
   beforeAll(async () => {
+    // Clear any stale config cache and reset parser to ensure clean state
+    clearConfigCache()
+    resetParser()
+    clearCache()
     // Initialize parser before all tests
     await getMarkdownParser()
+  })
+
+  beforeEach(() => {
+    // Clear markdown cache before each test to prevent cached results from previous tests
+    clearCache()
   })
 
   afterAll(() => {
     // Reset parser only after all tests in this file complete
     resetParser()
+    clearConfigCache()
+    clearCache()
   })
 
   describe('Malicious Script Blocking', () => {

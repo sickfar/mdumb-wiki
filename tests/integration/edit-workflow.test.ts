@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { mkdirSync, rmSync, readFileSync, writeFileSync, existsSync } from 'fs'
+import { mkdirSync, rmSync, readFileSync, existsSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { readWikiFile, writeWikiFile } from '../../server/utils/file-operations'
 
@@ -107,7 +107,7 @@ describe('Edit Workflow Integration', () => {
 
       // 7. Verify only one file exists in the folder
       const folderFullPath = join(TEST_DIR, folderPath)
-      const filesInFolder = require('fs').readdirSync(folderFullPath)
+      const filesInFolder = readdirSync(folderFullPath)
       expect(filesInFolder).toHaveLength(1)
       expect(filesInFolder[0]).toBe(fileName)
     })

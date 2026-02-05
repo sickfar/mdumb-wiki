@@ -4,7 +4,7 @@ import type { FileReadResult, FileWriteResult } from '~/server/utils/file-operat
 
 // Mock $fetch
 const mockFetch = vi.fn()
-globalThis.$fetch = mockFetch as any
+globalThis.$fetch = mockFetch as unknown as typeof $fetch
 
 // Mock @vueuse/core
 const mockUseDebounceFn = vi.fn((fn) => fn)
@@ -21,10 +21,10 @@ const localStorageMock = {
   removeItem: vi.fn(),
   clear: vi.fn()
 }
-globalThis.localStorage = localStorageMock as any
+globalThis.localStorage = localStorageMock as unknown as Storage
 
 describe('useEditor', () => {
-  let useEditor: () => any
+  let useEditor: () => ReturnType<typeof import('../../../app/composables/useEditor').useEditor>
 
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -187,7 +187,7 @@ describe('useEditor', () => {
   describe('draft management', () => {
     it('should save draft to localStorage', async () => {
       // We need to manually trigger the debounced function
-      let debouncedFn: Function | null = null
+      let debouncedFn: ((...args: unknown[]) => unknown) | null = null
       mockUseDebounceFn.mockImplementation((fn) => {
         debouncedFn = fn
         return fn
@@ -315,7 +315,7 @@ describe('useEditor', () => {
     })
 
     it('should update draftSavedAt timestamp when saving draft', async () => {
-      let debouncedFn: Function | null = null
+      let debouncedFn: ((...args: unknown[]) => unknown) | null = null
       mockUseDebounceFn.mockImplementation((fn) => {
         debouncedFn = fn
         return fn
@@ -342,8 +342,8 @@ describe('useEditor', () => {
 
   describe('conflict detection polling', () => {
     it('should poll for changes and detect conflicts', async () => {
-      let intervalCallback: Function | null = null
-      mockUseIntervalFn.mockImplementation((fn: Function) => {
+      let intervalCallback: (() => void) | null = null
+      mockUseIntervalFn.mockImplementation((fn: () => void) => {
         intervalCallback = fn
         return { pause: vi.fn(), resume: vi.fn() }
       })

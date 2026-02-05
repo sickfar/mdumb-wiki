@@ -4,6 +4,7 @@ import { fileWatcher } from '../utils/file-watcher'
 import { invalidateSearchCache } from '../api/search.get'
 import { start as startSyncManager } from '../utils/sync-manager'
 import { shutdown } from '../utils/shutdown-manager'
+import { loadIgnorePatterns } from '../utils/ignore'
 
 /**
  * Nitro plugin for wiki initialization and shutdown logging
@@ -58,6 +59,13 @@ export default defineNitroPlugin(async (nitroApp) => {
       logger.debug('File created, invalidating search cache')
       invalidateSearchCache()
     })
+
+    // Handle .mdumbignore changes
+    fileWatcher.on('ignore:changed', () => {
+      logger.info('Ignore patterns changed, reloading and invalidating search cache')
+      loadIgnorePatterns(config.contentPath)
+      invalidateSearchCache()
+    })
   } else {
     logger.info('File watcher disabled (watch: false)')
   }
@@ -72,6 +80,10 @@ export default defineNitroPlugin(async (nitroApp) => {
   } else {
     logger.info('Git sync disabled (git.enabled: false)')
   }
+
+  // Load ignore patterns
+  loadIgnorePatterns(config.contentPath)
+  logger.debug({ path: config.contentPath }, 'Ignore patterns loaded')
 
   logger.info('MDumb Wiki ready to serve content')
 

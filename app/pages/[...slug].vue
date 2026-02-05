@@ -13,7 +13,7 @@ const error = navError.value || pageError.value
 
 // Check if this is a folder without index.md
 const isFolder = computed(() => {
-  return page.value && (page.value as any).isFolder === true
+  return page.value && (page.value as unknown as { isFolder?: boolean }).isFolder === true
 })
 
 // Robust 404 detection - check multiple error structures
@@ -28,7 +28,7 @@ const notFound = computed(() => {
 const { showUpdateBanner, reload, dismiss } = useLiveReload()
 
 // Handle creating index.md for folder
-const modals = useModals()
+const _modals = useModals()
 const handleCreateIndex = () => {
   // Navigate to edit page to create index.md
   navigateTo(`/edit/${slug}/index`)

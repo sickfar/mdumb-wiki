@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { WikiPage } from '../../types/wiki'
 
-const props = defineProps<{
+const _props = defineProps<{
   page: WikiPage
 }>()
 
