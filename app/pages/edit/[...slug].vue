@@ -34,8 +34,9 @@ const save = async () => {
     // Dismiss any pending live reload notifications since we're already loading fresh content
     liveReload.dismiss()
 
-    // Navigate back to view mode
-    router.push(`/${slug.value}`)
+    // Navigate back to view mode (use canonical URL, strip /index or /README suffix)
+    const viewPath = slug.value.replace(/\/(index|README)$/, '') || 'index'
+    router.push(`/${viewPath}`)
   }
 }
 

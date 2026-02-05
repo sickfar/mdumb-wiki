@@ -25,6 +25,7 @@ export default defineEventHandler(async (event) => {
     // Try multiple variations: direct file, index file, etc.
     let filePath: string | null = null
     let resolvedPath: string | null = null
+    let relativeFilePath: string | null = null // Track the relative file path for the WikiPage
 
     // Variation 1: Direct file with .md extension (e.g., "guide" -> "guide.md")
     try {
@@ -32,6 +33,7 @@ export default defineEventHandler(async (event) => {
       resolvedPath = validatePath(directPath, config.contentPath)
       if (existsSync(resolvedPath)) {
         filePath = resolvedPath
+        relativeFilePath = directPath
       }
     } catch {
       // Path validation failed, try next variation
@@ -44,6 +46,7 @@ export default defineEventHandler(async (event) => {
         resolvedPath = validatePath(indexPath, config.contentPath)
         if (existsSync(resolvedPath)) {
           filePath = resolvedPath
+          relativeFilePath = indexPath
         }
       } catch {
         // Path validation failed, try next variation
@@ -57,6 +60,7 @@ export default defineEventHandler(async (event) => {
         resolvedPath = validatePath(readmePath, config.contentPath)
         if (existsSync(resolvedPath)) {
           filePath = resolvedPath
+          relativeFilePath = readmePath
         }
       } catch {
         // Path validation failed, try next variation
@@ -103,10 +107,10 @@ export default defineEventHandler(async (event) => {
     // Read the markdown file
     const fileContent = readFileSync(filePath, 'utf-8')
 
-    // Parse the markdown
-    const page = await parseMarkdown(fileContent, pathParam)
+    // Parse the markdown with the actual file path (not URL path)
+    const page = await parseMarkdown(fileContent, relativeFilePath!)
 
-    logger.info(`Content served for path: ${pathParam}`)
+    logger.info(`Content served for path: ${pathParam} (file: ${relativeFilePath})`)
 
     return page
   } catch (error) {

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import type { WikiPage } from '../../types/wiki'
 
-const _props = defineProps<{
+const props = defineProps<{
   page: WikiPage
 }>()
 
-const route = useRoute()
-const editPath = computed(() => `/edit${route.path}`)
+// Use the actual file path from page data for the edit link
+const editPath = computed(() => {
+  const filePath = props.page.path.replace(/\.md$/, '')
+  return `/edit/${filePath}`
+})
 </script>
 
 <template>
