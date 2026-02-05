@@ -95,6 +95,8 @@ The image uses a multi-stage build:
 
 **Image size:** ~250MB (slim Node.js runtime)
 
+**Supported architectures:** `linux/amd64`, `linux/arm64` (Apple Silicon, Raspberry Pi)
+
 **Note:** If no wiki content is mounted, a welcome page with getting started instructions is displayed.
 
 ---
