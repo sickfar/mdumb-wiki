@@ -1,4 +1,5 @@
 import MarkdownIt from 'markdown-it'
+import taskLists from 'markdown-it-task-lists'
 import Shiki from '@shikijs/markdown-it'
 import { getHighlighter } from 'shiki'
 import matter from 'gray-matter'
@@ -80,6 +81,9 @@ export async function getMarkdownParser(): Promise<MarkdownIt> {
         theme
       })
     )
+
+    // Add task list (checkbox) support
+    md.use(taskLists)
 
     // Add link conversion plugin
     md.use(markdownLinkPlugin)

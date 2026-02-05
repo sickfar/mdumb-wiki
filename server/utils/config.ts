@@ -22,7 +22,7 @@ const DEFAULT_CONFIG: WikiConfig = {
     allowedTags: [
       'b', 'i', 'em', 'strong', 'code', 'pre', 'a', 'img', 'ul', 'ol', 'li',
       'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'hr', 'br',
-      'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'div'
+      'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'div', 'input', 'label'
     ],
     allowedAttributes: {
       '*': ['class', 'id'],
@@ -31,7 +31,8 @@ const DEFAULT_CONFIG: WikiConfig = {
       'code': ['class'],
       'pre': ['class'],
       'span': ['class', 'style'],
-      'div': ['class']
+      'div': ['class'],
+      'input': ['type', 'checked', 'disabled']
     }
   },
   assets: {

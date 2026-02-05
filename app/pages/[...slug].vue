@@ -89,12 +89,20 @@ const handleCreateIndex = () => {
 .wiki-container {
   display: flex;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .wiki-main {
   flex: 1;
   padding: 2rem;
   max-width: 900px;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .wiki-main {
+    padding: 1rem;
+  }
 }
 
 .error-container,

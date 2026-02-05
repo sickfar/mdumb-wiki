@@ -71,6 +71,16 @@ const editPath = computed(() => {
   background: var(--color-accent-hover);
 }
 
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column-reverse;
+  }
+
+  .edit-button {
+    align-self: flex-start;
+  }
+}
+
 .wiki-title {
   font-size: 2.25rem;
   font-weight: 700;
@@ -94,6 +104,8 @@ const editPath = computed(() => {
   line-height: 1.7;
   color: var(--color-text-primary);
   transition: color 0.2s ease;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .markdown-body :deep(h1),
@@ -193,6 +205,8 @@ const editPath = computed(() => {
   border-collapse: collapse;
   width: 100%;
   margin: 1.5em 0;
+  display: block;
+  overflow-x: auto;
 }
 
 .markdown-body :deep(th),
@@ -214,6 +228,43 @@ const editPath = computed(() => {
   height: auto;
   border-radius: 0.5rem;
   margin: 1.5em 0;
+}
+
+.markdown-body :deep(.task-list-item) {
+  list-style: none;
+  position: relative;
+  padding-left: 0.25em;
+}
+
+.markdown-body :deep(.task-list-item input[type="checkbox"]) {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.4em;
+  height: 1.4em;
+  border: 2px solid var(--color-border-secondary, #4a5568);
+  border-radius: 3px;
+  background: transparent;
+  vertical-align: middle;
+  margin-right: 0.5em;
+  position: relative;
+  cursor: default;
+}
+
+.markdown-body :deep(.task-list-item input[type="checkbox"]:checked) {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.markdown-body :deep(.task-list-item input[type="checkbox"]:checked::after) {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 6px;
+  height: 11px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .markdown-body :deep(hr) {

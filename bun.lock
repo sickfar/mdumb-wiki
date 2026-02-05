@@ -19,6 +19,7 @@
         "lru-cache": "^11.2.5",
         "markdown-it": "^14.1.0",
         "markdown-it-sanitizer": "^0.4.3",
+        "markdown-it-task-lists": "^2.1.1",
         "mime-types": "^3.0.2",
         "nuxt": "^4.3.0",
         "pino": "^9.6.0",
@@ -1591,6 +1592,8 @@
     "markdown-it": ["markdown-it@14.1.0", "", { "dependencies": { "argparse": "^2.0.1", "entities": "^4.4.0", "linkify-it": "^5.0.0", "mdurl": "^2.0.0", "punycode.js": "^2.3.1", "uc.micro": "^2.1.0" }, "bin": { "markdown-it": "bin/markdown-it.mjs" } }, "sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg=="],
 
     "markdown-it-sanitizer": ["markdown-it-sanitizer@0.4.3", "", {}, "sha512-0Q2ua8+oDN7/3r5UXMnbVq8C+LRfT2pzVKA+h4nXTLEMBFQDwp7qJZOe7DkBa79C7V2cSBXJyScxJ7vYs9kE2w=="],
+
+    "markdown-it-task-lists": ["markdown-it-task-lists@2.1.1", "", {}, "sha512-TxFAc76Jnhb2OUu+n3yz9RMu4CwGfaT788br6HhEDlvWfdeJcLUsxk1Hgw2yJio0OXsxv7pyIPmvECY7bMbluA=="],
 
     "marked": ["marked@17.0.1", "", { "bin": { "marked": "bin/marked.js" } }, "sha512-boeBdiS0ghpWcSwoNm/jJBwdpFaMnZWRzjA6SkUMYb40SVaN1x7mmfGKp0jvexGcx+7y2La5zRZsYFZI6Qpypg=="],
 
