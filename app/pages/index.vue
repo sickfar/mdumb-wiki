@@ -6,6 +6,13 @@ const { data: page, error: pageError } = await useFetch<WikiPage>('/api/content/
 
 const error = navError.value || pageError.value
 
+// Check if index is missing (404) - show welcome placeholder instead of error
+const isIndexMissing = computed(() => {
+  if (!pageError.value) return false
+  const statusCode = (pageError.value as any)?.statusCode
+  return statusCode === 404
+})
+
 const { showUpdateBanner, reload, dismiss } = useLiveReload()
 </script>
 
@@ -17,7 +24,8 @@ const { showUpdateBanner, reload, dismiss } = useLiveReload()
     <WikiSidebar v-if="navigation" :navigation="navigation" />
     <SkeletonSidebar v-else class="wiki-sidebar" />
     <main class="wiki-main">
-      <div v-if="error" class="error-container">
+      <WelcomePlaceholder v-if="isIndexMissing" />
+      <div v-else-if="error" class="error-container">
         <h1>Error Loading Page</h1>
         <p>{{ error }}</p>
       </div>
