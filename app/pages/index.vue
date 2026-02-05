@@ -9,8 +9,8 @@ const error = navError.value || pageError.value
 // Check if index is missing (404) - show welcome placeholder instead of error
 const isIndexMissing = computed(() => {
   if (!pageError.value) return false
-  const statusCode = (pageError.value as any)?.statusCode
-  return statusCode === 404
+  const err = pageError.value as { statusCode?: number }
+  return err.statusCode === 404
 })
 
 const { showUpdateBanner, reload, dismiss } = useLiveReload()
