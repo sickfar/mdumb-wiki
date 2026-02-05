@@ -12,7 +12,7 @@ A simple, fast, file-based markdown wiki built with Nuxt 4 and Bun.
 - **Git Integration** - Optional auto-sync with git repositories
 - **Theme Toggle** - Light, dark, and auto themes
 - **Responsive Design** - Mobile-friendly with sidebar navigation
-- **Docker Ready** - Production-ready Bun-based images
+- **Docker Ready** - Production-ready multi-stage images
 - **Security** - Path traversal protection and XSS prevention
 
 ---
@@ -84,16 +84,18 @@ docker-compose down
 
 ### Docker Image Details
 
-The image uses a multi-stage build with Bun:
+The image uses a multi-stage build:
 
-| Stage | Purpose |
-|-------|---------|
-| `base` | Official `oven/bun:1` image |
-| `deps` | Installs dependencies with frozen lockfile |
-| `builder` | Runs `bun run build` to create production output |
-| `runner` | Minimal production image with `.output/` only |
+| Stage | Base Image | Purpose |
+|-------|------------|---------|
+| `base` | `oven/bun:1` | Build environment |
+| `deps` | `oven/bun:1` | Installs dependencies with frozen lockfile |
+| `builder` | `oven/bun:1` | Runs `bun run build` to create production output |
+| `runner` | `node:22-slim` | Minimal production image with `.output/` only |
 
-**Image size:** ~800MB (includes Bun runtime)
+**Image size:** ~250MB (slim Node.js runtime)
+
+**Note:** If no wiki content is mounted, a welcome page with getting started instructions is displayed.
 
 ---
 
